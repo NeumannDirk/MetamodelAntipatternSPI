@@ -1,12 +1,20 @@
 package simpleMetrics;
 
+import org.eclipse.emf.ecore.resource.Resource;
+
 import analyzerInterfaces.Metric;
+import metamodelUtil.MetamodelHelper;
 
-public class NumberOfClasses implements Metric {
+public class NumberOfClasses extends Metric {
+	
+	public NumberOfClasses() {
+		this.name = "simple NumberOfClasses";
+		this.shortcut = "#Class";
+	}
 
-	public int getValue() {
-		// TODO Auto-generated method stub
-		return -1;
+	@Override
+	protected double evaluateMetric(Resource resource) {
+		return MetamodelHelper.getAllEClasses(resource).size();
 	}
 
 }
