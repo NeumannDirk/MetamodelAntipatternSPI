@@ -1,12 +1,14 @@
 package mainanalyzer;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
@@ -32,43 +34,65 @@ public class MainAnalyzer {
 
 		List<String> ecoreFiles = new ArrayList<String>();
 		ecoreFiles.add("D:\\Repositories\\MyEcore\\model\\myEcore.ecore");
+		ecoreFiles.add("D:\\Repositories\\MyEcore\\model\\myEcore.ecore");
+		ecoreFiles.add("D:\\Repositories\\MyEcore\\model\\myEcore.ecore");
+		
+		HashMap<Integer, AnalysisResults> resultMap = new HashMap<Integer, AnalysisResults>();
 
 		for (int ecoreFileNumber = 0; ecoreFileNumber < ecoreFiles.size(); ecoreFileNumber++) {
 			String ecoreFile = ecoreFiles.get(ecoreFileNumber);
-			
-			EList<EObject> emodels = null;
+			AnalysisResults analysisResult = new AnalysisResults(ecoreFileNumber);
+			resultMap.put(ecoreFileNumber, analysisResult);
+						
 			Resource myMetaModel = null;
 			try {
 				ResourceSet resourceSet = new ResourceSetImpl();
-//				EcorePackage ecorePackage = EcorePackage.eINSTANCE;
-//				resourceSet.getPackageRegistry().put(ecorePackage.getNsURI(), ecorePackage);
 				resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("ecore", new EcoreResourceFactoryImpl());				
 				myMetaModel = resourceSet.getResource(URI.createFileURI(ecoreFile), true);
-				emodels = myMetaModel.getContents();
 			} catch (Exception e) {
 				System.out.println(e.getStackTrace());			
 			}
-			AnalysisResults analysisResult = new AnalysisResults();		
+					
 
 			System.out.println("\nAntipattern");
-			for (Antipattern antipattern : AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer(false)) {				
-				System.out.println("" + antipattern.getAntipatternID() + ": " + antipattern);
-				
+			for (Antipattern antipattern : AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer()) {				
+				System.out.println("" + antipattern.getAntipatternID() + ": " + antipattern);				
 				antipattern.evaluateAntiPatternForMetamodel(myMetaModel, analysisResult);
-//				analysisResult.addAntipattern(0, 5);
 			}
 			System.out.println("\nMetrics");
-			for (Metric metric : AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer(false)) {
-				System.out.println("" + metric.getMetricID() + ": " + metric);
-				
+			for (Metric metric : AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer()) {
+				System.out.println("" + metric.getMetricID() + ": " + metric);				
 				metric.evaluateMetricForMetamodel(myMetaModel, analysisResult);
-//				analysisResult.addMetric(0, 2);
 			}
-			
 			System.out.println("Result: \n" + analysisResult);
-
-		}
+		}		
+		System.out.println("\nPrinting results to csv...");
+		
+		boolean printHeader = Arrays.asList(args).contains("--header");
+		MainAnalyzer.printResultsCSV(printHeader, resultMap);
 		System.out.println("\nEnd");
+	}
+
+	private static void printResultsCSV(boolean printHeader, HashMap<Integer,AnalysisResults> resultMap) {
+		String pathToSave = "D:\\metamodel_analysis_results.csv";		
+		
+		FileWriter fileWriter;
+		try {
+			fileWriter = new FileWriter(pathToSave);
+			if (printHeader) {
+				System.out.println("print header");
+				fileWriter.write(AnalysisResults.getHeaderCSV());
+			}
+			for(int resultIndex = 0; resultIndex < resultMap.size(); resultIndex++) {				
+				fileWriter.write(resultMap.get(resultIndex).getContentCSV());				
+			}
+			fileWriter.flush();
+			fileWriter.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 }
