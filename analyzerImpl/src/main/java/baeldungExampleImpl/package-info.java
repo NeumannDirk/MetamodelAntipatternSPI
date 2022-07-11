@@ -1,8 +1,0 @@
-/**
- * 
- */
-/**
- * @author DirkNeumann
- *
- */
-package baeldungExampleImpl;

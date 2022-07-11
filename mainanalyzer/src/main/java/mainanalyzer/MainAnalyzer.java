@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.emf.common.util.URI;
@@ -17,19 +16,12 @@ import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import analyzerInterfaces.AnalyzerInterfaceImplementationLoader;
 import analyzerInterfaces.Antipattern;
 import analyzerInterfaces.Metric;
-import baeldungExample.ExchangeRate;
-import baeldungExample.ExchangeRateProvider;
 import results.AnalysisResults;
 
 public class MainAnalyzer {
 
 	public static void main(String[] args) {
 		System.out.println("\nStart");
-		System.out.println("\nBaeldung");
-		for (Iterator<ExchangeRateProvider> iter = ExchangeRate.providers(false); iter.hasNext();) {
-			System.out.println(iter.next());
-		}
-
 		System.out.println("\nMetamodelAnalysis");
 
 		List<String> ecoreFiles = new ArrayList<String>();
