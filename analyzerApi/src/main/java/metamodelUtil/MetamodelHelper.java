@@ -1,54 +1,37 @@
 package metamodelUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.impl.EClassImpl;
-import org.eclipse.emf.ecore.impl.EPackageImpl;
 import org.eclipse.emf.ecore.resource.Resource;
 
+/**
+ * Set of helper methods to efficiently retrieve (sets of) certain elements from a metamodel. 
+ * @author DirkNeumann
+ *
+ */
 public class MetamodelHelper {
 	
-	//SHORTCUTS FOR SPECIFIC TYPES
+	/**
+	 * Filters all elements of a given type from the provided metamodel and returns them in an <strong>unmodifiable</strong> list.
+	 * @param <T> Type of which all instances should be retrieved. 
+	 * @param clazz Class of the type &ltT&gt.
+	 * @param myMetaModel Provided metamodel to filter from.
+	 * @return <strong>Unmodifiable view</strong> on the list of the filtering result. 
+	 */
+	public static <T> List<T> getAllModelElementsOfGivenType(Class<T> clazz, Resource myMetaModel) {
+		List<T> returnList = new ArrayList<T>();
 		
-	public static ArrayList<EClass> getAllEClasses(Resource myMetaModel) {
-		ArrayList<Class> clazzes = new ArrayList<Class>();
-		clazzes.add(EClassImpl.class);
-		return (ArrayList<EClass>)(ArrayList<?>)getAllModelElementsOfGivenTypes(myMetaModel, clazzes);
-	}
-	
-	//WRAPPER FOR ANY TYPE
-	
-	public static ArrayList<EObject> getAllModelElementsOfGivenType(Resource myMetaModel, Class clazz) {
-		ArrayList<Class> clazzes = new ArrayList<Class>();
-		clazzes.add(clazz);
-		return getAllModelElementsOfGivenTypes(myMetaModel, clazzes);
-	}
-	
-	public static ArrayList<EObject> getAllModelElementsOfGivenTypes(Resource myMetaModel, List<Class> clazzes) {
-		ArrayList<EObject> returnList = new ArrayList<EObject>();
-		EList<EObject> emodels = myMetaModel.getContents();
-		getAllModelElementsOfGivenType(emodels, returnList, clazzes, null);				
-		return returnList;
-	}
-	
-	//ACTUAL COMPUTATION
-	
-	private static void getAllModelElementsOfGivenType(EList<EObject> contents, ArrayList<EObject> returnList, List<Class> clazzes, Integer packageHash) {
-		for (EObject content : contents) {			 
-			Class<? extends EObject> clazz = content.getClass();
-			if (clazz == EPackageImpl.class) {
-				int ph = content.hashCode();
-				if(packageHash == null || ph != packageHash) {
-					getAllModelElementsOfGivenType(((EPackageImpl)content).eContents(), returnList, clazzes, ph);					
-				}						
+		TreeIterator<EObject> iter = myMetaModel.getAllContents();
+		while(iter.hasNext()) {
+			EObject content = iter.next();
+			if(clazz.isInstance(content)) {
+				returnList.add(clazz.cast(content));
 			}
-			if (clazzes.contains(clazz)) {
-				returnList.add(content);
-			}
-		}
+		}				
+		return Collections.unmodifiableList(returnList);
 	}
 }

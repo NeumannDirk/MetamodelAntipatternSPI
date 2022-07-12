@@ -1,5 +1,6 @@
 package simpleMetrics;
 
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import analyzerInterfaces.Metric;
@@ -14,7 +15,7 @@ public class NumberOfClasses extends Metric {
 
 	@Override
 	protected double evaluateMetric(Resource resource) {
-		return MetamodelHelper.getAllEClasses(resource).size();
+		return MetamodelHelper.getAllModelElementsOfGivenType(EClass.class, resource).size();
 	}
 
 }

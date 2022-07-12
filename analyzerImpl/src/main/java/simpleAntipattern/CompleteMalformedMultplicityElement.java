@@ -1,8 +1,7 @@
 package simpleAntipattern;
 
-import java.util.ArrayList;
+import java.util.List;
 
-import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -19,12 +18,12 @@ public class CompleteMalformedMultplicityElement extends Antipattern {
 
 	@Override
 	protected double evaluateAntipattern(Resource resource) {
-		ArrayList<EClass> eclasses = MetamodelHelper.getAllEClasses(resource);
+		List<EClass> eclasses = MetamodelHelper.getAllModelElementsOfGivenType(EClass.class, resource);
 		if (eclasses.size() == 0) {
 			return 0;
 		}
 
-		int numberOfAntipatterns = 0;
+		long numberOfAntipatterns = 0;
 		
 		//[*,*] ==> ok
 		//[x,*] ==> ok
