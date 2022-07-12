@@ -1,7 +1,7 @@
 echo "StartBuilding"
 
 cd analyzerApi
-call mvn clean package
+call mvn clean install
 echo "API done!"
 cd ..
 cd analyzerImpl
