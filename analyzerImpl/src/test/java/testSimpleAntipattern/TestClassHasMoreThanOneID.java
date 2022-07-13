@@ -11,6 +11,6 @@ public class TestClassHasMoreThanOneID {
 	@Test
 	public void testCorrectName() {
 		ClassHasMoreThanOneID antipattern = new ClassHasMoreThanOneID();		
-		assertEquals("ClassHasMoreThanOneID", antipattern.name);
+		assertEquals("ClassHasMoreThanOneID", antipattern.getName());
 	}
 }

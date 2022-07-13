@@ -1,87 +1,80 @@
 package results;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
 
 import analyzerInterfaces.AnalyzerInterfaceImplementationLoader;
 import analyzerInterfaces.Antipattern;
 import analyzerInterfaces.Metric;
 
 public class AnalysisResults {
-	
+
 	private int metamodelIndex;
-	
+
 	public AnalysisResults(int metamodelIndex) {
 		this.metamodelIndex = metamodelIndex;
 	}
 
 	public static String getHeaderCSV() {
-		List<Antipattern> antipatternList = AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer();
-		List<Metric> metricList = AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer();
-		
+		SortedMap<String, Metric> metricMap = AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer();
+		SortedMap<String, Antipattern> antipatternMap = AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer();
+
 		StringBuilder stringBuilder = new StringBuilder("Nr.");
-		for (Metric metric : metricList) {
-			stringBuilder.append(",").append(metric.shortcut);
-		}		
-		for (Antipattern antipattern : antipatternList) {
-			stringBuilder.append(",").append(antipattern.shortcut);
+		for (String abstractMetricShortcut : metricMap.keySet()) {
+			stringBuilder.append(",").append(abstractMetricShortcut);
+		}
+		for (String abstractAntipatternShortcut : antipatternMap.keySet()) {
+			stringBuilder.append(",").append(abstractAntipatternShortcut);
 		}
 		stringBuilder.append("\n");
+
 		return stringBuilder.toString();
 	}
-	
+
 	public String getContentCSV() {
-		List<Antipattern> antipatternList = AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer();
-		List<Metric> metricList = AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer();
-		
+		SortedMap<String, Metric> metricMap = AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer();
+		SortedMap<String, Antipattern> antipatternMap = AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer();
+
 		StringBuilder stringBuilder = new StringBuilder().append(this.metamodelIndex);
-		for (int mIndex = 0; mIndex < this.metrics.size(); mIndex++) {
-			Metric metric = metricList.get(mIndex);
-			double result = this.metrics.get(metric.getMetricID());
-			stringBuilder.append(",").append(result);
+		for (String abstractMetricShortcut : metricMap.keySet()) {
+			stringBuilder.append(",").append(this.metrics.get(abstractMetricShortcut));
 		}
-		
-		for (int apIndex = 0; apIndex < this.antipattern.size(); apIndex++) {
-			Antipattern antipattern = antipatternList.get(apIndex);
-			double result = this.antipattern.get(antipattern.getAntipatternID());
-			stringBuilder.append(",").append(result);
+		for (String abstractAntipatternShortcut : antipatternMap.keySet()) {
+			stringBuilder.append(",").append(this.antipattern.get(abstractAntipatternShortcut));
 		}
 		stringBuilder.append("\n");
+
 		return stringBuilder.toString();
 	}
 
-	HashMap<Integer, Double> antipattern = new HashMap<Integer, Double>();
-	HashMap<Integer, Double> metrics = new HashMap<Integer, Double>();
+	Map<String, Double> antipattern = new HashMap<String, Double>();
+	Map<String, Double> metrics = new HashMap<String, Double>();
 
-	public void addMetric(int id, double value) {
+	public void addMetric(String id, double value) {
 		metrics.put(id, value);
 	}
 
-	public void addAntipattern(int id, double value) {
+	public void addAntipattern(String id, double value) {
 		antipattern.put(id, value);
 	}
 
 	@Override
 	public String toString() {
-		
-		List<Antipattern> antipatternList = AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer();
-		List<Metric> metricList = AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer();
-		
+
+		SortedMap<String, Metric> metricMap = AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer();
+		SortedMap<String, Antipattern> antipatternMap = AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer();
+
 		StringBuilder stringbuilder = new StringBuilder();
 		stringbuilder.append("\nMetrics:\n");
-		
-		for (int mIndex = 0; mIndex < this.metrics.size(); mIndex++) {
-			Metric metric = metricList.get(mIndex);
-			double result = this.metrics.get(metric.getMetricID());
-			stringbuilder.append("\t").append(metric.shortcut).append(": ").append(result).append("\n");
+		for (String abstractMetricShortcut : metricMap.keySet()) {
+			stringbuilder.append("\t").append(abstractMetricShortcut).append(": ")
+					.append(this.metrics.get(abstractMetricShortcut)).append("\n");
 		}
-		
-		stringbuilder.append("Antipattern:\n");
-
-		for (int apIndex = 0; apIndex < this.antipattern.size(); apIndex++) {
-			Antipattern antipattern = antipatternList.get(apIndex);
-			double result = this.antipattern.get(antipattern.getAntipatternID());
-			stringbuilder.append("\t").append(antipattern.shortcut).append(": ").append(result).append("\n");
+		stringbuilder.append("AbstractAntipattern:\n");
+		for (String abstractAntipatternShortcut : antipatternMap.keySet()) {
+			stringbuilder.append("\t").append(abstractAntipatternShortcut).append(": ")
+					.append(this.antipattern.get(abstractAntipatternShortcut)).append("\n");
 		}
 
 		return stringbuilder.toString();

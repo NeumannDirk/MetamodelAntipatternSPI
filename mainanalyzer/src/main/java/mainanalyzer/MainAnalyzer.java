@@ -47,14 +47,14 @@ public class MainAnalyzer {
 					
 
 			System.out.println("\nAntipattern");
-			for (Antipattern antipattern : AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer()) {				
-				System.out.println("" + antipattern.getAntipatternID() + ": " + antipattern);				
-				antipattern.evaluateAntiPatternForMetamodel(myMetaModel, analysisResult);
+			for (Antipattern abstractAntipattern : AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer().values()) {				
+				System.out.println("" + abstractAntipattern.getShortcut() + ": " + abstractAntipattern);				
+				abstractAntipattern.evaluateAntiPatternForMetamodel(myMetaModel, analysisResult);
 			}
 			System.out.println("\nMetrics");
-			for (Metric metric : AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer()) {
-				System.out.println("" + metric.getMetricID() + ": " + metric);				
-				metric.evaluateMetricForMetamodel(myMetaModel, analysisResult);
+			for (Metric abstractMetric : AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer().values()) {
+				System.out.println("" + abstractMetric.getShortcut() + ": " + abstractMetric);				
+				abstractMetric.evaluateMetricForMetamodel(myMetaModel, analysisResult);
 			}
 			System.out.println("Result: \n" + analysisResult);
 		}		
