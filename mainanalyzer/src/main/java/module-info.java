@@ -3,4 +3,5 @@ module mainanalyzer {
 	requires org.eclipse.emf.ecore;
 	requires org.eclipse.emf.common;
 	requires org.eclipse.emf.ecore.xmi;
+	requires info.picocli;
 }

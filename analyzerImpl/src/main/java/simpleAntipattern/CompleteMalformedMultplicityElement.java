@@ -11,7 +11,7 @@ import metamodelUtil.MetamodelHelper;
 public class CompleteMalformedMultplicityElement extends AbstractAntipattern {
 
 	private static final String name = "CompleteMalformedMultplicityElement";
-	private static final String shortcut = "#MME_COM";
+	private static final String shortcut = "MME_COM";
 	private static final String description = 
 			"This antipattern describes an EStructuralFeature which has a malformed multiplicity. "
 			+ "This includes the case in which no lower bound is set but an upper bound is set "

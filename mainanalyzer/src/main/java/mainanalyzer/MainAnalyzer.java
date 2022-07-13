@@ -3,7 +3,6 @@ package mainanalyzer;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -16,13 +15,35 @@ import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 import analyzerInterfaces.AnalyzerInterfaceImplementationLoader;
 import analyzerInterfaces.Antipattern;
 import analyzerInterfaces.Metric;
+import picocli.CommandLine;
+import picocli.CommandLine.Option;
 import results.AnalysisResults;
 
 public class MainAnalyzer {
-
+	
+	@Option(names = "-h", description = "print csv header")
+    boolean header;
+	
+	@Option(names = "-order", arity = "0..*", split=",")
+	List<String> shortcutOrder = new ArrayList<String>();
+	
 	public static void main(String[] args) {
+		MainAnalyzer ma = new MainAnalyzer();
+		new CommandLine(ma).parseArgs(args);
+		ma.start();
+	}
+
+	public void start() {
 		System.out.println("\nStart");
+		System.out.println("Was the header flag set?");
+		System.out.println(header ? "Yes" : "No");		
 		System.out.println("\nMetamodelAnalysis");
+		
+		for(String s : shortcutOrder) {
+			System.out.println(s);
+		}
+		
+//		if(true) return;
 
 		List<String> ecoreFiles = new ArrayList<String>();
 		ecoreFiles.add("D:\\Repositories\\MyEcore\\model\\myEcore.ecore");
@@ -46,27 +67,28 @@ public class MainAnalyzer {
 			}
 					
 
-			System.out.println("\nAntipattern");
+//			System.out.println("\nAntipattern");
 			for (Antipattern abstractAntipattern : AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer().values()) {				
-				System.out.println("" + abstractAntipattern.getShortcut() + ": " + abstractAntipattern);				
+//				System.out.println("" + abstractAntipattern.getShortcut() + ": " + abstractAntipattern);				
 				abstractAntipattern.evaluateAntiPatternForMetamodel(myMetaModel, analysisResult);
 			}
-			System.out.println("\nMetrics");
+//			System.out.println("\nMetrics");
 			for (Metric abstractMetric : AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer().values()) {
-				System.out.println("" + abstractMetric.getShortcut() + ": " + abstractMetric);				
+//				System.out.println("" + abstractMetric.getShortcut() + ": " + abstractMetric);				
 				abstractMetric.evaluateMetricForMetamodel(myMetaModel, analysisResult);
 			}
-			System.out.println("Result: \n" + analysisResult);
+//			System.out.println("Result: \n" + analysisResult);
 		}		
 		System.out.println("\nPrinting results to csv...");
 		
-		boolean printHeader = Arrays.asList(args).contains("--header");
-		MainAnalyzer.printResultsCSV(printHeader, resultMap);
+		AnalysisResults.setShortcutOrder(shortcutOrder);
+		
+		MainAnalyzer.printResultsCSV(header, resultMap);
 		System.out.println("\nEnd");
 	}
 
 	private static void printResultsCSV(boolean printHeader, HashMap<Integer,AnalysisResults> resultMap) {
-		String pathToSave = "D:\\metamodel_analysis_results.csv";		
+		String pathToSave = "D:\\metamodel_analysis_results.csv";
 		
 		FileWriter fileWriter;
 		try {
