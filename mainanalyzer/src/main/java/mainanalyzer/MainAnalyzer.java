@@ -2,111 +2,113 @@ package mainanalyzer;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 
-import analyzerInterfaces.AnalyzerInterfaceImplementationLoader;
+import analyzerInterfaces.AnalyzerInterfaceLoader;
 import analyzerInterfaces.Antipattern;
 import analyzerInterfaces.Metric;
+import analyzerUtil.MetamodelLoader;
+import concurrentExecution.MetamodelAnalysisThread;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 import results.AnalysisResults;
 
 public class MainAnalyzer {
-	
+
 	@Option(names = "-h", description = "print csv header")
-    boolean header;
-	
-	@Option(names = "-order", arity = "0..*", split=",")
+	boolean header;
+
+	@Option(names = "-s", description = "execute analysis tasks sequentially")
+	boolean sequential;
+
+	@Option(names = "-order", arity = "0..*", split = ",")
 	List<String> shortcutOrder = new ArrayList<String>();
-	
-	public static void main(String[] args) {
+
+	public static void main(String[] args) throws IOException {
 		MainAnalyzer ma = new MainAnalyzer();
 		new CommandLine(ma).parseArgs(args);
 		ma.start();
 	}
 
-	public void start() {
-		System.out.println("\nStart");
-		System.out.println("Was the header flag set?");
-		System.out.println(header ? "Yes" : "No");		
-		System.out.println("\nMetamodelAnalysis");
-		
-		for(String s : shortcutOrder) {
-			System.out.println(s);
+	public void start() throws IOException {
+		String dir = "D:\\data\\ap_mm";
+		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory(dir);
+		System.out.println("ecoreFiles.size() = " + ecoreFiles.size());
+		Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
+
+		if (this.sequential) {
+			MainAnalyzer.runSequential(ecoreFiles, resultMap);
+		} else {
+			MainAnalyzer.runParallel(ecoreFiles, resultMap);
 		}
-		
-//		if(true) return;
 
-		List<String> ecoreFiles = new ArrayList<String>();
-		ecoreFiles.add("D:\\Repositories\\MyEcore\\model\\myEcore.ecore");
-		ecoreFiles.add("D:\\Repositories\\MyEcore\\model\\myEcore.ecore");
-		ecoreFiles.add("D:\\Repositories\\MyEcore\\model\\myEcore.ecore");
-		
-		HashMap<Integer, AnalysisResults> resultMap = new HashMap<Integer, AnalysisResults>();
+		AnalysisResults.setShortcutOrder(shortcutOrder);
+		printResultsCSV(header, resultMap);
+	}
 
-		for (int ecoreFileNumber = 0; ecoreFileNumber < ecoreFiles.size(); ecoreFileNumber++) {
+	public static void runParallel(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
+		ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		System.out.println("Runtime.getRuntime().availableProcessors() = " + Runtime.getRuntime().availableProcessors());
+		for (int ecoreFileNumber = 0; ecoreFileNumber < 10000; ecoreFileNumber++) {
+			executorService
+					.execute(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber), resultMap));
+		}
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(2, TimeUnit.MINUTES);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+
+	public static void runSequential(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
+		for (int ecoreFileNumber = 0; ecoreFileNumber < 10000; ecoreFileNumber++) {
+
 			String ecoreFile = ecoreFiles.get(ecoreFileNumber);
 			AnalysisResults analysisResult = new AnalysisResults(ecoreFileNumber);
 			resultMap.put(ecoreFileNumber, analysisResult);
-						
-			Resource myMetaModel = null;
-			try {
-				ResourceSet resourceSet = new ResourceSetImpl();
-				resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("ecore", new EcoreResourceFactoryImpl());				
-				myMetaModel = resourceSet.getResource(URI.createFileURI(ecoreFile), true);
-			} catch (Exception e) {
-				System.out.println(e.getStackTrace());			
-			}
-					
 
-//			System.out.println("\nAntipattern");
-			for (Antipattern abstractAntipattern : AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer().values()) {				
-//				System.out.println("" + abstractAntipattern.getShortcut() + ": " + abstractAntipattern);				
-				abstractAntipattern.evaluateAntiPatternForMetamodel(myMetaModel, analysisResult);
-			}
-//			System.out.println("\nMetrics");
-			for (Metric abstractMetric : AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer().values()) {
-//				System.out.println("" + abstractMetric.getShortcut() + ": " + abstractMetric);				
-				abstractMetric.evaluateMetricForMetamodel(myMetaModel, analysisResult);
-			}
-//			System.out.println("Result: \n" + analysisResult);
-		}		
-		System.out.println("\nPrinting results to csv...");
-		
-		AnalysisResults.setShortcutOrder(shortcutOrder);
-		
-		MainAnalyzer.printResultsCSV(header, resultMap);
-		System.out.println("\nEnd");
+			Optional<Resource> optionalMetamodel = MetamodelLoader.loadEcoreMetamodelFromFile(ecoreFile);
+
+			optionalMetamodel.ifPresent(metamodel -> {
+				for (Antipattern antipattern : AnalyzerInterfaceLoader.getAllAntipatterns().values()) {
+					antipattern.evaluateAntiPatternForMetamodel(metamodel, analysisResult);
+				}
+				for (Metric metric : AnalyzerInterfaceLoader.getAllMetrics().values()) {
+					metric.evaluateMetricForMetamodel(metamodel, analysisResult);
+				}
+			});
+		}
 	}
 
-	private static void printResultsCSV(boolean printHeader, HashMap<Integer,AnalysisResults> resultMap) {
-		String pathToSave = "D:\\metamodel_analysis_results.csv";
-		
+	private void printResultsCSV(boolean printHeader, Map<Integer, AnalysisResults> resultMap) {		
+		String goalDirectory = "D:\\";
+		String date = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
+		String execution = this.sequential ? "seq" : "par";
+		String fileName = "metamodel_analysis_results.csv";		
+
 		FileWriter fileWriter;
 		try {
-			fileWriter = new FileWriter(pathToSave);
+			fileWriter = new FileWriter(goalDirectory + date + "_" + execution + "_" + fileName);
 			if (printHeader) {
-				System.out.println("print header");
 				fileWriter.write(AnalysisResults.getHeaderCSV());
 			}
-			for(int resultIndex = 0; resultIndex < resultMap.size(); resultIndex++) {				
-				fileWriter.write(resultMap.get(resultIndex).getContentCSV());				
+			for (int resultIndex = 0; resultIndex < resultMap.size(); resultIndex++) {
+				fileWriter.write(resultMap.get(resultIndex).getContentCSV());
 			}
 			fileWriter.flush();
 			fileWriter.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+		} catch (IOException e) { }
 	}
-
 }

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 
-import analyzerInterfaces.AnalyzerInterfaceImplementationLoader;
+import analyzerInterfaces.AnalyzerInterfaceLoader;
 import analyzerInterfaces.Antipattern;
 import analyzerInterfaces.Metric;
 
@@ -17,8 +17,8 @@ public class AnalysisResults {
 		this.metamodelIndex = metamodelIndex;
 	}
 	
-	static SortedMap<String, Metric> metricMap = AnalyzerInterfaceImplementationLoader.getMetricsAnalyzer();
-	static SortedMap<String, Antipattern> antipatternMap = AnalyzerInterfaceImplementationLoader.getAntipatternsAnalyzer();
+	static SortedMap<String, Metric> metricMap = AnalyzerInterfaceLoader.getAllMetrics();
+	static SortedMap<String, Antipattern> antipatternMap = AnalyzerInterfaceLoader.getAllAntipatterns();
 	
 	static List<String> shortcutOrder;
 	
