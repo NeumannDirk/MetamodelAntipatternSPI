@@ -19,7 +19,7 @@ public class NumberOfClasses extends AbstractMetric {
 	}
 
 	@Override
-	protected double evaluateMetric(Resource resource) {
+	public double evaluateMetric(Resource resource) {
 		return MetamodelHelper.getAllModelElementsOfGivenType(EClass.class, resource).size();
 	}
 

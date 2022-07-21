@@ -4,10 +4,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.eclipse.emf.ecore.resource.Resource;
+
 import analyzerInterfaces.AnalyzerInterfaceLoader;
 import analyzerInterfaces.Antipattern;
 import analyzerInterfaces.Metric;
-import analyzerUtil.MetamodelLoader;
+import metamodelUtil.MetamodelHelper;
 import results.AnalysisResults;
 
 public class MetamodelAnalysisThread implements Runnable {
@@ -27,7 +28,7 @@ public class MetamodelAnalysisThread implements Runnable {
 		AnalysisResults analysisResult = new AnalysisResults(ecoreFileNumber);
 		resultMap.put(ecoreFileNumber, analysisResult);
 
-		Optional<Resource> optionalMetamodel = MetamodelLoader.loadEcoreMetamodelFromFile(ecoreFile);
+		Optional<Resource> optionalMetamodel = MetamodelHelper.loadEcoreMetamodelFromFile(ecoreFile);
 
 		optionalMetamodel.ifPresent(metamodel -> {
 			for (Antipattern antipattern : AnalyzerInterfaceLoader.getAllAntipatterns().values()) {

@@ -20,6 +20,7 @@ import analyzerInterfaces.Antipattern;
 import analyzerInterfaces.Metric;
 import analyzerUtil.MetamodelLoader;
 import concurrentExecution.MetamodelAnalysisThread;
+import metamodelUtil.MetamodelHelper;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
 import results.AnalysisResults;
@@ -79,7 +80,7 @@ public class MainAnalyzer {
 			AnalysisResults analysisResult = new AnalysisResults(ecoreFileNumber);
 			resultMap.put(ecoreFileNumber, analysisResult);
 
-			Optional<Resource> optionalMetamodel = MetamodelLoader.loadEcoreMetamodelFromFile(ecoreFile);
+			Optional<Resource> optionalMetamodel = MetamodelHelper.loadEcoreMetamodelFromFile(ecoreFile);
 
 			optionalMetamodel.ifPresent(metamodel -> {
 				for (Antipattern antipattern : AnalyzerInterfaceLoader.getAllAntipatterns().values()) {

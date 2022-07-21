@@ -36,7 +36,7 @@ public abstract class AbstractMetric implements Metric {
 		this.description = description;
 	}
 
-	protected abstract double evaluateMetric(Resource resource);
+	public abstract double evaluateMetric(Resource resource);
 
 	@Override
 	public void evaluateMetricForMetamodel(Resource resource, AnalysisResults analysisResult) {

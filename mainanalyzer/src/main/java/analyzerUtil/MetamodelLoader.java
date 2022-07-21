@@ -4,13 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-
-import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
-import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
 
 public final class MetamodelLoader {
 	public static List<String> findAllEcoreMetamodelsInDirectory(String directoryToLoadFrom) throws IOException {
@@ -33,18 +26,5 @@ public final class MetamodelLoader {
 				list.add(f.getAbsolutePath());
 			}
 		}
-	}
-
-	public static Optional<Resource> loadEcoreMetamodelFromFile(String ecoreFile) {
-		Resource myMetaModel = null;
-		try {
-			ResourceSet resourceSet = new ResourceSetImpl();
-			resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("ecore",
-					new EcoreResourceFactoryImpl());
-			myMetaModel = resourceSet.getResource(URI.createFileURI(ecoreFile), true);
-		} catch (Exception e) {
-//			e.printStackTrace();
-		}
-		return Optional.ofNullable(myMetaModel);
 	}
 }

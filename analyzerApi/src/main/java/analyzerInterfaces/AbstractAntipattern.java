@@ -36,7 +36,7 @@ public abstract class AbstractAntipattern implements Antipattern {
 		this.description = description;
 	}	
 
-	protected abstract long evaluateAntipattern(Resource resource);
+	public abstract long evaluateAntipattern(Resource resource);
 
 	@Override
 	public void evaluateAntiPatternForMetamodel(Resource resource, AnalysisResults analysisResult) {

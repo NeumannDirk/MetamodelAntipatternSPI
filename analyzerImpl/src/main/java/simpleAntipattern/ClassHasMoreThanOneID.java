@@ -24,7 +24,7 @@ public class ClassHasMoreThanOneID extends AbstractAntipattern {
 	}
 
 	@Override
-	protected long evaluateAntipattern(Resource resource) {
+	public long evaluateAntipattern(Resource resource) {
 		List<EClass> eclasses = MetamodelHelper.getAllModelElementsOfGivenType(EClass.class, resource);
 		Predicate<EClass> moreThanOneID = eClass -> eClass.getEAllAttributes().stream().filter(EAttribute::isID)
 				.count() > 1;

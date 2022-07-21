@@ -22,7 +22,7 @@ public class CompleteMalformedMultplicityElement extends AbstractAntipattern {
 	}
 
 	@Override
-	protected long evaluateAntipattern(Resource resource) {
+	public long evaluateAntipattern(Resource resource) {
 		List<EStructuralFeature> eStructuralFeatures = MetamodelHelper
 				.getAllModelElementsOfGivenType(EStructuralFeature.class, resource);
 		if (eStructuralFeatures.size() == 0) {
