@@ -36,6 +36,12 @@ public class MainAnalyzer {
 	@Option(names = "-order", arity = "0..*", split = ",")
 	List<String> shortcutOrder = new ArrayList<String>();
 
+	@Option(names = "-inputDirectory", description = "directory from which all metamodels should be analysed")
+	private String inputDirectory = null;
+	
+	@Option(names = "-outputDirectory", description = "directory in which the result csv file schould be saved")
+	private String outputDirectory = null;
+
 	public static void main(String[] args) throws IOException {
 		MainAnalyzer ma = new MainAnalyzer();
 		new CommandLine(ma).parseArgs(args);
@@ -43,8 +49,7 @@ public class MainAnalyzer {
 	}
 
 	public void start() throws IOException {
-		String dir = "D:\\data\\ap_mm";
-		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory(dir);
+		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory(inputDirectory);
 		System.out.println("ecoreFiles.size() = " + ecoreFiles.size());
 		Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
 
@@ -60,7 +65,8 @@ public class MainAnalyzer {
 
 	public static void runParallel(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
 		ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		System.out.println("Runtime.getRuntime().availableProcessors() = " + Runtime.getRuntime().availableProcessors());
+		System.out
+				.println("Runtime.getRuntime().availableProcessors() = " + Runtime.getRuntime().availableProcessors());
 		for (int ecoreFileNumber = 0; ecoreFileNumber < 10000; ecoreFileNumber++) {
 			executorService
 					.execute(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber), resultMap));
@@ -94,14 +100,13 @@ public class MainAnalyzer {
 	}
 
 	private void printResultsCSV(boolean printHeader, Map<Integer, AnalysisResults> resultMap) {		
-		String goalDirectory = "D:\\";
 		String date = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
 		String execution = this.sequential ? "seq" : "par";
-		String fileName = "metamodel_analysis_results.csv";		
+		String fileName = "metamodel_analysis_results.csv";
 
 		FileWriter fileWriter;
 		try {
-			fileWriter = new FileWriter(goalDirectory + date + "_" + execution + "_" + fileName);
+			fileWriter = new FileWriter(outputDirectory + date + "_" + execution + "_" + fileName);
 			if (printHeader) {
 				fileWriter.write(AnalysisResults.getHeaderCSV());
 			}
@@ -110,6 +115,7 @@ public class MainAnalyzer {
 			}
 			fileWriter.flush();
 			fileWriter.close();
-		} catch (IOException e) { }
+		} catch (IOException e) {
+		}
 	}
 }
