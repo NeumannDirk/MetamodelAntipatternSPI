@@ -29,3 +29,7 @@ The following uML class diagram gives an overview over the architectural structu
 </p>
 
 As indicated, the `MainAnalyzer` uses the `AnalyzerInterfaceLoader` to find all implementations of the interfaces `Antipattern` and `Metric`. These are then applied to the metamodels loaded by the `MetamodelLoader`. The antipattern and metrics can use some helper methods (`MetamodelHelper`) to deal with the metamodels, retrieve the needed information and write the results into an `AnalysisResult`-object which is provided from the `MainAnalyzer`. The package `concurrentExecution` contains the needed class to parallelize the analysis and to evaluate how big the performance boost is.
+
+## Example Execution
+
+The code should be ready to run with the latest JDK and JRE. Just clone this repository and execute the `build.bat`. Then you can execute the `run.bat` but quite likely you need to change the `-inputDirectory` and `-outputDirectory` parameters. If you do not have an ecore-metamodel at hand you can use the example from [here](https://github.com/NeumannDirk/MetamodelAntipatternSPI/tree/main/analyzerImpl/src/test/resources). For your interest: `-h` prints a header in the output csv, `-s` enforces sequential analysis of the given metamodels but it can just be omitted to use multi-threading.
