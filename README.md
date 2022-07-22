@@ -1,15 +1,15 @@
 # MetamodelAntipatternSPI
 
-This repository contains the software artifacts for the university course "Praktikum: Ingenieursmäßige Software-Entwicklung" at the KIT (Karlsruher Institut für Technologie". Goal is to implement a modular framework to analyse metamodels with respect to the prevalence of different metamodel antipatterns and at the same time asses different metrics to categorize metamodels and make findings more expressive. Another focus is on the parellelisation and overall speed of the evaluation of the metamodels.
+This repository contains the software artifacts for the university course "Praktikum: Ingenieursmäßige Software-Entwicklung" at the KIT (Karlsruher Institut für Technologie). Goal is to implement a modular framework to analyse metamodels with respect to the prevalence of different metamodel antipatterns and at the same time asses different metrics to categorize metamodels and make findings more expressive. Another focus is on the parellelisation and overall speed of the evaluation of the metamodels.
 
-## Technology for modularity 
+## Technology for Modularity 
 
 During the initial phase of dvelopement two alternatives for implemention modularity were considered: Using the Java Service Provider Interface (Java SPI) and unsing an OSGI based solution. The decision was made to use Java SPI because of multiple reasons.
 1. First, Java SPI is more lightweight and therefore easier to use and to start with.
 2. Second, many advantages of OSGI such as dynamic loading, installing, updating and stopping of services ist not needed. The goal is "just" to analyse a given set of metamodels with the antipattern and metrics provided at the start up time of the programm. Adding or removing antipattern/ metrics during execution would lead to incomplete datasets in the final result and wont provide any advantage.
 3. Lastly, the runtime environment for OSGI is harder to set up since the complete OSGI framework needs to be provided and shiped. Java SPI on the other hand uses the intern reflection libraries and has therefore less dependencies.
 
-## Attempts to improve performance
+## Attempts to Improve Performance
 
 Improving performance is split in three different levels in the project. The level of metamodels, the level of all analyzer and the level of the individual antipattern or metric.
 1. On the largest scale, one of the most obvious solutions is to evaluate multiple metamodels in paralell. This solution is already very effective. In test runs is reduced the time for evaluating ~85'000 metamodels from 108sec to 29sec which is a factor of 3.7.
@@ -28,4 +28,4 @@ The following uML class diagram gives an overview over the architectural structu
 <img src="https://github.com/NeumannDirk/MetamodelAntipatternSPI/blob/main/pictures/uml.svg" width="700" height="700"/>
 </p>
 
-As indicated, the MainAnalyzer uses the AnalyzerInterfaceLoader to find all implementations of the interfaces Antipattern and Metric. These are then applied to the metamodels loaded by the MetamodelLoader. The antipattern and metrics can use some helper methods (MetamodelHelper) to deal with the metemodels, retrieve the needed information and write the results into an AnalysisResult-object which is provided from the MainAnalyzer. The package "concurrentExecution" contains the needed class to parallelize the analysis and to evaluate how big the performance boost is.<mark>Marked text</mark>
+As indicated, the `MainAnalyzer` uses the `AnalyzerInterfaceLoader` to find all implementations of the interfaces `Antipattern` and `Metric`. These are then applied to the metamodels loaded by the `MetamodelLoader`. The antipattern and metrics can use some helper methods (`MetamodelHelper`) to deal with the metamodels, retrieve the needed information and write the results into an `AnalysisResult`-object which is provided from the `MainAnalyzer`. The package `concurrentExecution` contains the needed class to parallelize the analysis and to evaluate how big the performance boost is.
