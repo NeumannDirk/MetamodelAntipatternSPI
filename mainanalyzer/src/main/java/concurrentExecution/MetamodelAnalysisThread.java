@@ -1,7 +1,9 @@
 package concurrentExecution;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.resource.Resource;
 
@@ -16,11 +18,13 @@ public class MetamodelAnalysisThread implements Runnable {
 	private int ecoreFileNumber;
 	private String ecoreFile;
 	private Map<Integer, AnalysisResults> resultMap;
+	List<String> shortcutSelection;
 
-	public MetamodelAnalysisThread(int ecoreFileNumber, String ecoreFile, Map<Integer, AnalysisResults> resultMap) {
+	public MetamodelAnalysisThread(int ecoreFileNumber, String ecoreFile, Map<Integer, AnalysisResults> resultMap, List<String> shortcutSelection) {
 		this.ecoreFileNumber = ecoreFileNumber;
 		this.ecoreFile = ecoreFile;
 		this.resultMap = resultMap;
+		this.shortcutSelection = shortcutSelection;
 	}
 
 	@Override
@@ -31,10 +35,12 @@ public class MetamodelAnalysisThread implements Runnable {
 		Optional<Resource> optionalMetamodel = MetamodelHelper.loadEcoreMetamodelFromFile(ecoreFile);
 
 		optionalMetamodel.ifPresent(metamodel -> {
-			for (Antipattern antipattern : AnalyzerInterfaceLoader.getAllAntipatterns().values()) {
+			for (Antipattern antipattern : AnalyzerInterfaceLoader.getAllAntipatterns().values().stream()
+					.filter(ap -> shortcutSelection.contains(ap.getShortcut())).collect(Collectors.toList())) {
 				antipattern.evaluateAntiPatternForMetamodel(metamodel, analysisResult);
 			}
-			for (Metric metric : AnalyzerInterfaceLoader.getAllMetrics().values()) {
+			for (Metric metric : AnalyzerInterfaceLoader.getAllMetrics().values().stream()
+					.filter(ap -> shortcutSelection.contains(ap.getShortcut())).collect(Collectors.toList())) {
 				metric.evaluateMetricForMetamodel(metamodel, analysisResult);
 			}
 		});

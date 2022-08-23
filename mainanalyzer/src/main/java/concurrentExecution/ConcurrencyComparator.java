@@ -30,7 +30,7 @@ public class ConcurrencyComparator {
 		for (int sequentialIndex = 0; sequentialIndex < repetitions; sequentialIndex++) {
 			long start = System.currentTimeMillis();
 			Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
-			MainAnalyzer.runSequential(ecoreFiles, resultMap);
+			new MainAnalyzer().runSequential(ecoreFiles, resultMap);
 			long end = System.currentTimeMillis();
 			long duration = end -start;
 			System.out.println("Sequential run " + sequentialIndex + ": " + duration);
@@ -40,7 +40,7 @@ public class ConcurrencyComparator {
 		for (int parallelIndex = 0; parallelIndex < repetitions; parallelIndex++) {
 			long start = System.currentTimeMillis();
 			Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
-			MainAnalyzer.runParallel(ecoreFiles, resultMap);
+			new MainAnalyzer().runParallel(ecoreFiles, resultMap);
 			long end = System.currentTimeMillis();
 			long duration = end -start;
 			System.out.println("Parallel run " + parallelIndex + ": " + duration);
