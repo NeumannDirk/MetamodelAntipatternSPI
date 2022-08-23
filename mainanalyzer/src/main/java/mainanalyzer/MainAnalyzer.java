@@ -26,26 +26,74 @@ import picocli.CommandLine.Option;
 import results.AnalysisResults;
 
 public class MainAnalyzer {
-
-	@Option(names = "-h", description = "print csv header")
+	
+	private final static String helpParameter = "--help";
+	private final static String helpDescription = "show all commandline parameters";
+	@Option(names = helpParameter, usageHelp = true, description = helpDescription)
+	boolean help;
+	
+	private final static String headerParameter = "-h";
+	private final static String headerDescription = "print header into result csv";
+	@Option(names = headerParameter, description = headerDescription)
 	boolean header;
 
-	@Option(names = "-s", description = "execute analysis tasks sequentially")
+	private final static String sequentialParameter = "-s";
+	private final static String sequentialDescription = "execute sequential";
+	@Option(names = sequentialParameter, description = sequentialDescription)
 	boolean sequential;
 
-	@Option(names = "-order", arity = "0..*", split = ",")
+	private final static String orderParameter = "-order";
+	private final static String orderDescription = "selection and order of antipattern and metrics to analyze given by ID";
+	@Option(names = orderParameter, arity = "0..*", split = ",", description = orderDescription)
 	List<String> shortcutOrder = new ArrayList<String>();
 
-	@Option(names = "-inputDirectory", description = "directory from which all metamodels should be analysed")
+	private final static String inputDirectoryParameter = "-inputDirectory";
+	private final static String inputDirectoryDescription = "directory from which all metamodels should be analysed";
+	@Option(names = inputDirectoryParameter, description = inputDirectoryDescription)
 	private String inputDirectory = null;
-	
-	@Option(names = "-outputDirectory", description = "directory in which the result csv file schould be saved")
+
+	private final static String outputDirectoryParameter = "-outputDirectory";
+	private final static String outputDirectoryDescription = "directory in which the result csv file schould be saved";
+	@Option(names = outputDirectoryParameter, description = outputDirectoryDescription)
 	private String outputDirectory = null;
+	
+	private static void printHelp() {
+		
+		final int widthCol1 = 25;
+		final int widthCol2 = 80;
+		final String headingSeparator = "=".repeat(widthCol1 + widthCol2 + 3) + System.lineSeparator(); 
+		final String rowSeparator = "-".repeat(widthCol1 + widthCol2 + 3) + System.lineSeparator();
+		final String template = "|%-" + widthCol1 + "s|%-" + widthCol2 + "s|" + System.lineSeparator();
+		
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(headingSeparator);
+		sb.append(String.format(template, "Parameter", "Description"));
+		sb.append(headingSeparator);
+		sb.append(String.format(template, helpParameter, helpDescription));
+		sb.append(rowSeparator);
+		sb.append(String.format(template, headerParameter, headerDescription));
+		sb.append(rowSeparator);
+		sb.append(String.format(template, sequentialParameter, sequentialDescription));
+		sb.append(rowSeparator);
+		sb.append(String.format(template, orderParameter, orderDescription));
+		sb.append(rowSeparator);
+		sb.append(String.format(template, inputDirectoryParameter, inputDirectoryDescription));
+		sb.append(rowSeparator);
+		sb.append(String.format(template, outputDirectoryParameter, outputDirectoryDescription));
+		sb.append(rowSeparator);
+		System.out.println(sb.toString());
+	}
 
 	public static void main(String[] args) throws IOException {
 		MainAnalyzer ma = new MainAnalyzer();
 		new CommandLine(ma).parseArgs(args);
-		ma.start();
+		if(ma.help){
+			CommandLine.usage(new MainAnalyzer(), System.out);
+			printHelp();
+		} else {
+			ma.start();
+		}
 	}
 
 	public void start() throws IOException {
@@ -99,7 +147,7 @@ public class MainAnalyzer {
 		}
 	}
 
-	private void printResultsCSV(boolean printHeader, Map<Integer, AnalysisResults> resultMap) {		
+	private void printResultsCSV(boolean printHeader, Map<Integer, AnalysisResults> resultMap) {
 		String date = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
 		String execution = this.sequential ? "seq" : "par";
 		String fileName = "metamodel_analysis_results.csv";
