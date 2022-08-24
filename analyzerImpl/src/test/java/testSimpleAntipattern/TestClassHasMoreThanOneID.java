@@ -32,7 +32,7 @@ public class TestClassHasMoreThanOneID {
 				.loadEcoreMetamodelFromFile(resourcePath + "/" + filename);
 		assertTrue(optionalMetamodel.isPresent());
 		ClassHasMoreThanOneID antipattern = new ClassHasMoreThanOneID();
-		long actual = antipattern.evaluateAntipattern(optionalMetamodel.get());
+		long actual = antipattern.evaluate(optionalMetamodel.get());
 		assertEquals(expected, actual);
 	}
 

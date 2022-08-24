@@ -37,11 +37,13 @@ public class MetamodelAnalysisThread implements Runnable {
 		optionalMetamodel.ifPresent(metamodel -> {
 			for (Antipattern antipattern : AnalyzerInterfaceLoader.getAllAntipatterns().values().stream()
 					.filter(ap -> shortcutSelection.contains(ap.getShortcut())).collect(Collectors.toList())) {
-				antipattern.evaluateAntiPatternForMetamodel(metamodel, analysisResult);
+				long evaluationResult = antipattern.evaluate(metamodel);
+				analysisResult.addAntipattern(antipattern.getShortcut(), evaluationResult);
 			}
 			for (Metric metric : AnalyzerInterfaceLoader.getAllMetrics().values().stream()
-					.filter(ap -> shortcutSelection.contains(ap.getShortcut())).collect(Collectors.toList())) {
-				metric.evaluateMetricForMetamodel(metamodel, analysisResult);
+					.filter(m -> shortcutSelection.contains(m.getShortcut())).collect(Collectors.toList())) {
+				double evaluationResult = metric.evaluate(metamodel);
+				analysisResult.addMetric(metric.getShortcut(), evaluationResult);
 			}
 		});
 	}

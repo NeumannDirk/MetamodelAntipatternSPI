@@ -1,9 +1,5 @@
 package analyzerInterfaces;
 
-import org.eclipse.emf.ecore.resource.Resource;
-
-import results.AnalysisResults;
-
 public abstract class AbstractMetric implements Metric {	
 
 	@Override
@@ -34,13 +30,5 @@ public abstract class AbstractMetric implements Metric {
 		this.name = name;
 		this.shortcut = shortcut;
 		this.description = description;
-	}
-
-	public abstract double evaluateMetric(Resource resource);
-
-	@Override
-	public void evaluateMetricForMetamodel(Resource resource, AnalysisResults analysisResult) {
-		double val = evaluateMetric(resource);
-		analysisResult.addMetric(this.getShortcut(), val);
 	}
 }

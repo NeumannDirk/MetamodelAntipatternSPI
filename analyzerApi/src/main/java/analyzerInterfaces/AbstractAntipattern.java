@@ -1,9 +1,5 @@
 package analyzerInterfaces;
 
-import org.eclipse.emf.ecore.resource.Resource;
-
-import results.AnalysisResults;
-
 public abstract class AbstractAntipattern implements Antipattern {
 
 	@Override
@@ -34,13 +30,5 @@ public abstract class AbstractAntipattern implements Antipattern {
 		this.name = name;
 		this.shortcut = shortcut;
 		this.description = description;
-	}	
-
-	public abstract long evaluateAntipattern(Resource resource);
-
-	@Override
-	public void evaluateAntiPatternForMetamodel(Resource resource, AnalysisResults analysisResult) {
-		long val = evaluateAntipattern(resource);
-		analysisResult.addAntipattern(this.getShortcut(), val);
 	}
 }

@@ -24,7 +24,7 @@ public class DiamondInheritance extends AbstractAntipattern {
 	}
 
 	@Override
-	public long evaluateAntipattern(Resource resource) {
+	public Long evaluate(Resource resource) {
 		List<EClass> eclasses = MetamodelHelper.getAllModelElementsOfGivenType(EClass.class, resource);
 		long numberOfAntipattern = 0;
 		for (EClass eclass : eclasses) {
