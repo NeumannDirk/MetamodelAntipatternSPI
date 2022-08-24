@@ -8,7 +8,6 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EGenericType;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
-import org.eclipse.emf.ecore.EParameter;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.impl.EDataTypeImpl;
 import org.eclipse.emf.ecore.impl.EEnumImpl;
@@ -33,7 +32,7 @@ public class EcoreToHypergraphConverter {
 		
 		if (hypergraph.nodes.size() > 0) {
 			for(HyperNode hyperNode : hypergraph.nodes) {
-				Class hyperNodeClass = hyperNode.originalModelElement.getClass();
+				Class<? extends EObject> hyperNodeClass = hyperNode.originalModelElement.getClass();
 				if(hyperNodeClass == EEnumImpl.class) {
 					continue;
 				} else if (hyperNodeClass == EDataTypeImpl.class) {

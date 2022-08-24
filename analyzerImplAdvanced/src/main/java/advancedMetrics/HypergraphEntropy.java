@@ -1,11 +1,9 @@
 package advancedMetrics;
 
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import analyzerInterfaces.AbstractMetric;
 import hypergraph.EcoreToHypergraphConverter;
-import metamodelUtil.MetamodelHelper;
 
 public class HypergraphEntropy extends AbstractMetric {
 

@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
@@ -44,7 +45,7 @@ public class MetamodelHelper {
 		Resource myMetaModel = null;
 		try {
 			ResourceSet resourceSet = new ResourceSetImpl();
-			resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("ecore",
+			resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put(EcorePackage.eNAME,
 					new EcoreResourceFactoryImpl());
 			myMetaModel = resourceSet.getResource(URI.createFileURI(ecoreFile), true);
 		} catch (Exception e) {

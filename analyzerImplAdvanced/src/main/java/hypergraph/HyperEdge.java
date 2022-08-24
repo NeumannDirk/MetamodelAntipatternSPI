@@ -1,11 +1,9 @@
 package hypergraph;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EGenericType;
@@ -13,8 +11,6 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EOperation;
 import org.eclipse.emf.ecore.EParameter;
 import org.eclipse.emf.ecore.EReference;
-import org.eclipse.emf.ecore.impl.EDataTypeImpl;
-import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
 public class HyperEdge {
 	public EObject originalModelElement; 

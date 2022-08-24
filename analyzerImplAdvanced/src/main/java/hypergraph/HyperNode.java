@@ -1,14 +1,11 @@
 package hypergraph;
 
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.impl.EClassImpl;
 import org.eclipse.emf.ecore.impl.EDataTypeImpl;
 import org.eclipse.emf.ecore.impl.EEnumImpl;
 import org.eclipse.emf.ecore.impl.EGenericTypeImpl;
-import org.eclipse.emf.ecore.impl.EPackageImpl;
-import org.eclipse.emf.ecore.resource.Resource;
 
 public class HyperNode {
 	
@@ -45,18 +42,6 @@ public class HyperNode {
 		}
 		
 		return location + name;
-	}
-	
-	private static String retrieveName(EClass clazz) {
-		EObject eContainer = clazz.eContainer();
-		String location = "";
-		if (eContainer == null) {
-			System.out.println("Kein EContainer für eine Klasse!");
-		} else {
-			location = retrieveNameFromEContainer(eContainer) + "/";
-		}
-		
-		return location + clazz.getName();
 	}
 	
 	private static String retrieveNameFromEContainer(EObject eContainer) {

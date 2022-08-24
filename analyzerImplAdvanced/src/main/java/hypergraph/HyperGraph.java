@@ -51,10 +51,7 @@ public class HyperGraph {
 		
 	}
 	
-	public double calculateEntropy() {		
-		Map<Object, Long> counts = this.edges.stream().collect(Collectors.groupingBy(e -> e.nodes, Collectors.counting()));
-		ArrayList<HyperNode> xx = new ArrayList<HyperNode>(this.nodes);
-		
+	public double calculateEntropy() {
 		Map<HyperNode, ArrayList<HyperEdge>> table = new HashMap<HyperNode, ArrayList<HyperEdge>>();
 		for(HyperNode node : this.nodes) {
 			table.put(node, new ArrayList<HyperEdge>());
