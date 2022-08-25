@@ -10,24 +10,21 @@ import analyzerInterfaces.Antipattern;
 import analyzerInterfaces.Metric;
 
 public class AnalysisResults {
-
-	private int metamodelIndex;
-
-	public AnalysisResults(int metamodelIndex) {
-		this.metamodelIndex = metamodelIndex;
-	}
 	
 	static SortedMap<String, Metric> metricMap = AnalyzerInterfaceLoader.getAllMetrics();
 	static SortedMap<String, Antipattern> antipatternMap = AnalyzerInterfaceLoader.getAllAntipatterns();
 	
-	static List<String> shortcutSelection;
+	private static String separator = ",";
+	
+	public static void setSeparator(String separator) {
+		AnalysisResults.separator = separator;
+	}
+	
+	private static List<String> shortcutSelection;
 	
 	public static void setShortcutSelection(List<String> shortcutSelection) {
 		AnalysisResults.shortcutSelection = checkShortCuts(shortcutSelection);
 	}
-
-	Map<String, Double> antipattern = new HashMap<String, Double>();
-	Map<String, Double> metrics = new HashMap<String, Double>();
 	
 	public static String getHeaderCSV() {
 		return (shortcutSelection == null) ? getAllHeaderCSV() : getSelectionHeaderCSV();
@@ -41,7 +38,7 @@ public class AnalysisResults {
 		StringBuilder stringBuilder = new StringBuilder("Nr.");
 		//Add the selected shortcuts in the order the user wanted
 		for (String shortcut : shortcutSelection) {
-			stringBuilder.append(",").append(shortcut);
+			stringBuilder.append(AnalysisResults.separator).append(shortcut);
 		}
 		stringBuilder.append(System.lineSeparator());
 
@@ -52,15 +49,24 @@ public class AnalysisResults {
 
 		StringBuilder stringBuilder = new StringBuilder("Nr.");
 		for (String metricShortcut : metricMap.keySet()) {
-			stringBuilder.append(",").append(metricShortcut);
+			stringBuilder.append(AnalysisResults.separator).append(metricShortcut);
 		}
 		for (String antipatternShortcut : antipatternMap.keySet()) {
-			stringBuilder.append(",").append(antipatternShortcut);
+			stringBuilder.append(AnalysisResults.separator).append(antipatternShortcut);
 		}
 		stringBuilder.append(System.lineSeparator());
 
 		return stringBuilder.toString();
 	}
+	
+	private int metamodelIndex;
+
+	public AnalysisResults(int metamodelIndex) {
+		this.metamodelIndex = metamodelIndex;
+	}
+
+	Map<String, Double> antipattern = new HashMap<String, Double>();
+	Map<String, Double> metrics = new HashMap<String, Double>();
 	
 	public String getContentCSV() {
 		return (shortcutSelection == null) ? getAllContentCSV() : getSelectionContentCSV();		
@@ -74,10 +80,10 @@ public class AnalysisResults {
 
 		//Adding the selected metrics and antipattern		
 		for (String metricShortcut : selectedMetrics) {
-			stringBuilder.append(",").append(this.metrics.get(metricShortcut));
+			stringBuilder.append(AnalysisResults.separator).append(this.metrics.get(metricShortcut));
 		}
 		for (String antipatternShortcut : selectedAntipattern) {
-			stringBuilder.append(",").append(this.antipattern.get(antipatternShortcut));
+			stringBuilder.append(AnalysisResults.separator).append(this.antipattern.get(antipatternShortcut));
 		}
 		
 		stringBuilder.append(System.lineSeparator());
@@ -88,10 +94,10 @@ public class AnalysisResults {
 	private String getAllContentCSV() {
 		StringBuilder stringBuilder = new StringBuilder().append(this.metamodelIndex);
 		for (String metricShortcut : metricMap.keySet()) {
-			stringBuilder.append(",").append(this.metrics.get(metricShortcut));
+			stringBuilder.append(AnalysisResults.separator).append(this.metrics.get(metricShortcut));
 		}
 		for (String antipatternShortcut : antipatternMap.keySet()) {
-			stringBuilder.append(",").append(this.antipattern.get(antipatternShortcut));
+			stringBuilder.append(AnalysisResults.separator).append(this.antipattern.get(antipatternShortcut));
 		}
 		stringBuilder.append(System.lineSeparator());
 
@@ -105,22 +111,5 @@ public class AnalysisResults {
 
 	public void addAntipattern(String id, double value) {
 		antipattern.put(id, value);
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder stringbuilder = new StringBuilder();
-		stringbuilder.append("\nMetrics:" + System.lineSeparator());
-		for (String metricShortcut : metricMap.keySet()) {
-			stringbuilder.append("\t").append(metricShortcut).append(": ")
-					.append(this.metrics.get(metricShortcut)).append(System.lineSeparator());
-		}
-		stringbuilder.append("Antipattern:" + System.lineSeparator());
-		for (String antipatternShortcut : antipatternMap.keySet()) {
-			stringbuilder.append("\t").append(antipatternShortcut).append(": ")
-					.append(this.antipattern.get(antipatternShortcut)).append(System.lineSeparator());
-		}
-
-		return stringbuilder.toString();
 	}
 }

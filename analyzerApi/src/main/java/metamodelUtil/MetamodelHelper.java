@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
@@ -20,6 +22,7 @@ import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl;
  *
  */
 public class MetamodelHelper {
+	private static Logger logger = LogManager.getLogger(MetamodelHelper.class.getName());
 	
 	/**
 	 * Filters all elements of a given type from the provided metamodel and returns them in an <strong>unmodifiable</strong> list.
@@ -41,6 +44,11 @@ public class MetamodelHelper {
 		return Collections.unmodifiableList(returnList);
 	}
 	
+	/**
+	 * Tries to loads an ecore metamodel from the filesystem. 
+	 * @param ecoreFile Path of the ecore metamodel
+	 * @return The Resource of the metamodel if success, an empty optional if not. 
+	 */
 	public static Optional<Resource> loadEcoreMetamodelFromFile(String ecoreFile) {
 		Resource myMetaModel = null;
 		try {
@@ -49,7 +57,7 @@ public class MetamodelHelper {
 					new EcoreResourceFactoryImpl());
 			myMetaModel = resourceSet.getResource(URI.createFileURI(ecoreFile), true);
 		} catch (Exception e) {
-//			e.printStackTrace();
+			logger.info(String.format("Unable to load the ecore metamodel from the file \"%s\". Errormessage: %s", ecoreFile, e.getMessage()));
 		}
 		return Optional.ofNullable(myMetaModel);
 	}

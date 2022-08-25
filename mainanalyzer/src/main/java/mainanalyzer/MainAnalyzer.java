@@ -14,12 +14,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import analyzerInterfaces.AnalyzerInterfaceLoader;
 import analyzerInterfaces.Antipattern;
 import analyzerInterfaces.Metric;
 import analyzerUtil.MetamodelLoader;
+import analyzerUtil.ParameterAndLoggerHelper;
 import concurrentExecution.MetamodelAnalysisThread;
 import metamodelUtil.MetamodelHelper;
 import picocli.CommandLine;
@@ -27,41 +30,63 @@ import picocli.CommandLine.Option;
 import results.AnalysisResults;
 
 public class MainAnalyzer {
+	private static Logger logger = LogManager.getLogger(MainAnalyzer.class.getName());
 
 	private final static String helpParameter = "--help";
-	private final static String helpDescription = "show all commandline parameters";
-	@Option(names = helpParameter, usageHelp = true, description = helpDescription)
+	private final static String helpDescription = "Show all commandline parameters";
+	@Option(names = helpParameter, description = helpDescription)
 	boolean help;
 
-	private final static String headerParameter = "-h";
-	private final static String headerDescription = "print header into result csv";
+	private final static String loggerLevelParameter = "-log";
+	private final static String loggerLevelDescription = "Set logger level: trace(0), debug(1), info(2), warn(3), error(4), fatal(5). Default is warn(3).";
+	@Option(names = loggerLevelParameter, description = loggerLevelDescription, defaultValue = "3")
+	int loggerLevel;
+	
+	private final static String headerParameter = "-header";
+	private final static String headerDescription = "Print header into result csv";
 	@Option(names = headerParameter, description = headerDescription)
 	boolean header;
 
-	private final static String sequentialParameter = "-s";
-	private final static String sequentialDescription = "execute sequential";
+	private final static String sequentialParameter = "-sequential";
+	private final static String sequentialDescription = "Execute sequential";
 	@Option(names = sequentialParameter, description = sequentialDescription)
 	boolean sequential;
 
 	private final static String selectionParameter = "-selection";
-	private final static String selectionDescription = "selection and order of antipattern and metrics to analyze given by ID";
+	private final static String selectionDescription = "Selection and order of antipattern and metrics to analyze given by ID";
 	@Option(names = selectionParameter, arity = "0..*", split = ",", description = selectionDescription)
 	List<String> shortcutSelection = new ArrayList<String>();
 
 	private final static String inputDirectoryParameter = "-inputDirectory";
-	private final static String inputDirectoryDescription = "directory from which all metamodels should be analysed";
+	private final static String inputDirectoryDescription = "Directory from which all metamodels should be analysed";
 	@Option(names = inputDirectoryParameter, description = inputDirectoryDescription)
 	private String inputDirectory = null;
 
 	private final static String outputDirectoryParameter = "-outputDirectory";
-	private final static String outputDirectoryDescription = "directory in which the result csv file schould be saved";
+	private final static String outputDirectoryDescription = "Directory in which the result csv file schould be saved";
 	@Option(names = outputDirectoryParameter, description = outputDirectoryDescription)
 	private String outputDirectory = null;
+
+	private boolean checkCommandLineParameters() {
+		boolean returnValue = true;
+		if (this.loggerLevel < 0 || this.loggerLevel > 5) {
+			logger.warn("Invalid logger level. Setting warn-level.");
+		}
+		ParameterAndLoggerHelper.setLoggerLevel(this.loggerLevel);
+		if (this.inputDirectory == null) {
+			System.out.println("The parameter \"-inputDirectory\" must be set.");
+			returnValue = false;
+		}
+		if (this.outputDirectory == null) {
+			System.out.println("It is recommended to set the parameter \"-outputDirectory\".");
+		}
+		return returnValue;
+	}
 
 	private static void printHelp() {
 
 		final int widthCol1 = 25;
-		final int widthCol2 = 80;
+		final int widthCol2 = 100;
 		final String headingSeparator = "=".repeat(widthCol1 + widthCol2 + 3) + System.lineSeparator();
 		final String rowSeparator = "-".repeat(widthCol1 + widthCol2 + 3) + System.lineSeparator();
 		final String template = "|%-" + widthCol1 + "s|%-" + widthCol2 + "s|" + System.lineSeparator();
@@ -71,6 +96,8 @@ public class MainAnalyzer {
 		sb.append(String.format(template, "Parameter", "Description"));
 		sb.append(headingSeparator);
 		sb.append(String.format(template, helpParameter, helpDescription));
+		sb.append(rowSeparator);
+		sb.append(String.format(template, loggerLevelParameter, loggerLevelDescription));
 		sb.append(rowSeparator);
 		sb.append(String.format(template, headerParameter, headerDescription));
 		sb.append(rowSeparator);
@@ -85,7 +112,7 @@ public class MainAnalyzer {
 		System.out.println(sb.toString());
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException {		
 		MainAnalyzer ma = new MainAnalyzer();
 		new CommandLine(ma).parseArgs(args);
 		if (ma.help) {
@@ -97,12 +124,14 @@ public class MainAnalyzer {
 	}
 
 	public void start() throws IOException {
+		logger.info("Starting new analysis task.");
 		if (!checkCommandLineParameters()) {
 			return;
 		}
 
 		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory(inputDirectory);
-		System.out.println("ecoreFiles.size() = " + ecoreFiles.size());
+		logger.trace(String.format("Found %d potential ecore metamodels to analyze.", ecoreFiles.size()));
+		
 		Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
 
 		if (this.sequential) {
@@ -110,26 +139,16 @@ public class MainAnalyzer {
 		} else {
 			runParallel(ecoreFiles, resultMap);
 		}
+		logger.trace("Analysis completed. Printing results...");
 
 		AnalysisResults.setShortcutSelection(shortcutSelection);
 		printResultsCSV(header, resultMap);
-	}
-
-	private boolean checkCommandLineParameters() {
-		boolean returnValue = true;
-		if (this.inputDirectory == null) {
-			System.out.println("The parameter \"-inputDirectory\" must be set.");
-			returnValue = false;
-		}
-		if (this.outputDirectory == null) {
-			System.out.println("It is recommended to set the parameter \"-outputDirectory\".");
-		}
-		return returnValue;
+		logger.trace("Results stored. Done.");
 	}
 
 	public void runParallel(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
 		ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		System.out.println("Available Processors: " + Runtime.getRuntime().availableProcessors());
+		logger.trace(String.format("Available Processors: %d", Runtime.getRuntime().availableProcessors()));
 		for (int ecoreFileNumber = 0; ecoreFileNumber < 10000; ecoreFileNumber++) {
 			executorService
 					.execute(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber), resultMap, shortcutSelection));
@@ -138,7 +157,7 @@ public class MainAnalyzer {
 		try {
 			executorService.awaitTermination(2, TimeUnit.MINUTES);
 		} catch (Exception e) {
-			// TODO: handle exception
+			logger.error(String.format("Error occurrec during parallel analysis: %s", e.getMessage()));
 		}
 	}
 
@@ -167,6 +186,7 @@ public class MainAnalyzer {
 	}
 
 	private void printResultsCSV(boolean printHeader, Map<Integer, AnalysisResults> resultMap) {
+		
 		String date = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
 		String execution = this.sequential ? "seq" : "par";
 		String fileName = "metamodel_analysis_results.csv";

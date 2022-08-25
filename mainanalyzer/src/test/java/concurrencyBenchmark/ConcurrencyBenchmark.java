@@ -1,12 +1,17 @@
-package concurrentExecution;
+package concurrencyBenchmark;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.Test;
+
 import analyzerUtil.MetamodelLoader;
+import analyzerUtil.ParameterAndLoggerHelper;
 import mainanalyzer.MainAnalyzer;
 import results.AnalysisResults;
 
@@ -17,15 +22,20 @@ import results.AnalysisResults;
  * @author DirkNeumann
  *
  */
-public class ConcurrencyComparator {
+public class ConcurrencyBenchmark {
+	private static Logger logger = LogManager.getLogger(ConcurrencyBenchmark.class.getName());
 
-	public static void main(String[] args) throws IOException {
+	@Test
+	public void testBenchmark() {
+		String ecoreFileDirectory = "D:/data/ap_mm";
 		int repetitions = 10;
+		
+		ParameterAndLoggerHelper.setLoggerLevel(Level.INFO);
 
 		long[] sequentialDurations = new long[repetitions];
 		long[] parallelDurations = new long[repetitions];
 		
-		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory("D:\\data\\ap_mm");
+		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory(ecoreFileDirectory);
 
 		for (int sequentialIndex = 0; sequentialIndex < repetitions; sequentialIndex++) {
 			long start = System.currentTimeMillis();
@@ -33,7 +43,7 @@ public class ConcurrencyComparator {
 			new MainAnalyzer().runSequential(ecoreFiles, resultMap);
 			long end = System.currentTimeMillis();
 			long duration = end -start;
-			System.out.println("Sequential run " + sequentialIndex + ": " + duration);
+			logger.info(String.format("Sequential run %d: %d", sequentialIndex, duration));
 			sequentialDurations[sequentialIndex] = duration;
 		}
 
@@ -43,14 +53,14 @@ public class ConcurrencyComparator {
 			new MainAnalyzer().runParallel(ecoreFiles, resultMap);
 			long end = System.currentTimeMillis();
 			long duration = end -start;
-			System.out.println("Parallel run " + parallelIndex + ": " + duration);
+			logger.info(String.format("Parallel run %d: %d", parallelIndex, duration));
 			parallelDurations[parallelIndex] = duration;
 		}
 
 		double averageSequentialDuration = (0.001d * Arrays.stream(sequentialDurations).reduce(0, (a, b) -> a + b)) / repetitions;
 		double averageParallelDuration = (0.001d * Arrays.stream(parallelDurations).reduce(0, (a, b) -> a + b)) / repetitions;
-
-		System.out.println("Sequential runs on average took  " + String.format("{0:0.##}", averageSequentialDuration) + " sec.");
-		System.out.println("Parallel runs on average took  " + String.format("{0:0.##}", averageParallelDuration) + " sec.");
+		
+		logger.info(String.format("Sequential runs on average took %.2f sec.", averageSequentialDuration));
+		logger.info(String.format("Parallel runs on average took %.2f sec.", averageParallelDuration));
 	}
 }
