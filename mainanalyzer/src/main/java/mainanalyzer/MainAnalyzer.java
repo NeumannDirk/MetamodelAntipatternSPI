@@ -11,7 +11,10 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -147,11 +150,14 @@ public class MainAnalyzer {
 	}
 
 	public void runParallel(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
+		
+		System.out.println(ecoreFiles.size() + " metamodels to analyze.");
+		AtomicInteger lock = new AtomicInteger(0);
+		
 		ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		logger.trace(String.format("Available Processors: %d", Runtime.getRuntime().availableProcessors()));
-		for (int ecoreFileNumber = 0; ecoreFileNumber < 10000; ecoreFileNumber++) {
-			executorService
-					.execute(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber), resultMap, shortcutSelection));
+		for (int ecoreFileNumber = 0; ecoreFileNumber < ecoreFiles.size(); ecoreFileNumber++) {
+			executorService.execute(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber), resultMap, shortcutSelection, lock,ecoreFiles.size()));
 		}
 		executorService.shutdown();
 		try {

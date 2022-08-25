@@ -3,6 +3,7 @@ package concurrentExecution;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.resource.Resource;
@@ -19,12 +20,17 @@ public class MetamodelAnalysisThread implements Runnable {
 	private String ecoreFile;
 	private Map<Integer, AnalysisResults> resultMap;
 	List<String> shortcutSelection;
+	private AtomicInteger lock;
+	private int max;
 
-	public MetamodelAnalysisThread(int ecoreFileNumber, String ecoreFile, Map<Integer, AnalysisResults> resultMap, List<String> shortcutSelection) {
+	public MetamodelAnalysisThread(int ecoreFileNumber, String ecoreFile, Map<Integer, AnalysisResults> resultMap,
+			List<String> shortcutSelection, AtomicInteger lock, int max) {
 		this.ecoreFileNumber = ecoreFileNumber;
 		this.ecoreFile = ecoreFile;
 		this.resultMap = resultMap;
 		this.shortcutSelection = shortcutSelection;
+		this.lock = lock;
+		this.max = max;
 	}
 
 	@Override
@@ -46,5 +52,19 @@ public class MetamodelAnalysisThread implements Runnable {
 				analysisResult.addMetric(metric.getShortcut(), evaluationResult);
 			}
 		});
+		printProgressBar();
+	}
+
+	private void printProgressBar() {
+		synchronized (this.lock) {
+			double percent100 = (this.lock.addAndGet(1) * 100.0) / this.max;
+			int percent50 = (int) Math.round(percent100 / 2);
+			StringBuilder sb = new StringBuilder(String.format("\rProgress %3.0f%% [", percent100));
+			sb.append("=".repeat(percent50 == 0 ? 0 : percent50 - 1) + ">"
+					+ " ".repeat(percent50 == 0 ? 49 : 50 - percent50));
+			String template = "] %" + String.valueOf(this.max).length() + "d/%d";
+			sb.append(String.format(template, this.lock.get(), this.max));
+			System.out.print(sb.toString());
+		}
 	}
 }
