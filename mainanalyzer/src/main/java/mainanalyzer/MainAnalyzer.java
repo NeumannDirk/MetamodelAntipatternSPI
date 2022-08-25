@@ -88,31 +88,31 @@ public class MainAnalyzer {
 
 	private static void printHelp() {
 
-		final int widthCol1 = 25;
-		final int widthCol2 = 100;
-		final String headingSeparator = "=".repeat(widthCol1 + widthCol2 + 3) + System.lineSeparator();
-		final String rowSeparator = "-".repeat(widthCol1 + widthCol2 + 3) + System.lineSeparator();
-		final String template = "|%-" + widthCol1 + "s|%-" + widthCol2 + "s|" + System.lineSeparator();
+		final int widthColumn1 = 25;
+		final int widthColumn2 = 100;
+		final String headingSeparator = "=".repeat(widthColumn1 + widthColumn2 + 3) + System.lineSeparator();
+		final String rowSeparator = "-".repeat(widthColumn1 + widthColumn2 + 3) + System.lineSeparator();
+		final String template = "|%-" + widthColumn1 + "s|%-" + widthColumn2 + "s|" + System.lineSeparator();
 
-		StringBuilder sb = new StringBuilder();
-		sb.append(headingSeparator);
-		sb.append(String.format(template, "Parameter", "Description"));
-		sb.append(headingSeparator);
-		sb.append(String.format(template, helpParameter, helpDescription));
-		sb.append(rowSeparator);
-		sb.append(String.format(template, loggerLevelParameter, loggerLevelDescription));
-		sb.append(rowSeparator);
-		sb.append(String.format(template, headerParameter, headerDescription));
-		sb.append(rowSeparator);
-		sb.append(String.format(template, sequentialParameter, sequentialDescription));
-		sb.append(rowSeparator);
-		sb.append(String.format(template, selectionParameter, selectionDescription));
-		sb.append(rowSeparator);
-		sb.append(String.format(template, inputDirectoryParameter, inputDirectoryDescription));
-		sb.append(rowSeparator);
-		sb.append(String.format(template, outputDirectoryParameter, outputDirectoryDescription));
-		sb.append(rowSeparator);
-		System.out.println(sb.toString());
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append(headingSeparator);
+		stringBuilder.append(String.format(template, "Parameter", "Description"));
+		stringBuilder.append(headingSeparator);
+		stringBuilder.append(String.format(template, helpParameter, helpDescription));
+		stringBuilder.append(rowSeparator);
+		stringBuilder.append(String.format(template, loggerLevelParameter, loggerLevelDescription));
+		stringBuilder.append(rowSeparator);
+		stringBuilder.append(String.format(template, headerParameter, headerDescription));
+		stringBuilder.append(rowSeparator);
+		stringBuilder.append(String.format(template, sequentialParameter, sequentialDescription));
+		stringBuilder.append(rowSeparator);
+		stringBuilder.append(String.format(template, selectionParameter, selectionDescription));
+		stringBuilder.append(rowSeparator);
+		stringBuilder.append(String.format(template, inputDirectoryParameter, inputDirectoryDescription));
+		stringBuilder.append(rowSeparator);
+		stringBuilder.append(String.format(template, outputDirectoryParameter, outputDirectoryDescription));
+		stringBuilder.append(rowSeparator);
+		System.out.println(stringBuilder.toString());
 	}
 
 	public static void main(String[] args) throws IOException {		

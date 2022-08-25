@@ -59,12 +59,12 @@ public class MetamodelAnalysisThread implements Runnable {
 		synchronized (this.lock) {
 			double percent100 = (this.lock.addAndGet(1) * 100.0) / this.max;
 			int percent50 = (int) Math.round(percent100 / 2);
-			StringBuilder sb = new StringBuilder(String.format("\rProgress %3.0f%% [", percent100));
-			sb.append("=".repeat(percent50 == 0 ? 0 : percent50 - 1) + ">"
+			StringBuilder stringBuilder = new StringBuilder(String.format("\rProgress %3.0f%% [", percent100));
+			stringBuilder.append("=".repeat(percent50 == 0 ? 0 : percent50 - 1) + ">"
 					+ " ".repeat(percent50 == 0 ? 49 : 50 - percent50));
 			String template = "] %" + String.valueOf(this.max).length() + "d/%d";
-			sb.append(String.format(template, this.lock.get(), this.max));
-			System.out.print(sb.toString());
+			stringBuilder.append(String.format(template, this.lock.get(), this.max));
+			System.out.print(stringBuilder.toString());
 		}
 	}
 }
