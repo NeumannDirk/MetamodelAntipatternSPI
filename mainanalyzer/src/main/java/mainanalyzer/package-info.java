@@ -1,5 +1,5 @@
 /**
- * Main entry point for the analysis
+ * Main entry point for the analysis.
  * 
  * @author DirkNeumann
  */
