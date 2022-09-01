@@ -11,8 +11,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -43,7 +41,7 @@ public class MainAnalyzer {
 	private final static String loggerLevelParameter = "-log";
 	private final static String loggerLevelDescription = "Set logger level: trace(0), debug(1), info(2), warn(3), error(4), fatal(5). Default is warn(3).";
 	@Option(names = loggerLevelParameter, description = loggerLevelDescription, defaultValue = "3")
-	int loggerLevel;
+	int loggerLevel = 3;
 	
 	private final static String headerParameter = "-header";
 	private final static String headerDescription = "Print header into result csv";
@@ -132,7 +130,7 @@ public class MainAnalyzer {
 			return;
 		}
 
-		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory(inputDirectory);
+		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory(this.inputDirectory);
 		logger.trace(String.format("Found %d potential ecore metamodels to analyze.", ecoreFiles.size()));
 		
 		Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
@@ -151,7 +149,6 @@ public class MainAnalyzer {
 
 	public void runParallel(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
 		
-		System.out.println(ecoreFiles.size() + " metamodels to analyze.");
 		AtomicInteger lock = new AtomicInteger(0);
 		
 		ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -168,7 +165,7 @@ public class MainAnalyzer {
 	}
 
 	public void runSequential(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
-		for (int ecoreFileNumber = 0; ecoreFileNumber < 10000; ecoreFileNumber++) {
+		for (int ecoreFileNumber = 0; ecoreFileNumber < ecoreFiles.size(); ecoreFileNumber++) {
 
 			String ecoreFile = ecoreFiles.get(ecoreFileNumber);
 			AnalysisResults analysisResult = new AnalysisResults(ecoreFileNumber);
@@ -188,7 +185,21 @@ public class MainAnalyzer {
 					analysisResult.addMetric(metric.getShortcut(), evaluationResult);
 				}
 			});
+			if(this.loggerLevel > 1) {
+				this.printSequentialProgressBar(ecoreFileNumber, ecoreFiles.size());
+			}
 		}
+	}
+
+	private void printSequentialProgressBar(int current, int max) {
+		double percent100 = (current * 100.0) / max;
+		int percent50 = (int) Math.round(percent100 / 2);
+		StringBuilder stringBuilder = new StringBuilder(String.format("\rProgress %3.0f%% [", percent100));
+		stringBuilder.append("=".repeat(percent50 == 0 ? 0 : percent50 - 1) + ">"
+				+ " ".repeat(percent50 == 0 ? 49 : 50 - percent50));
+		String template = "] %" + String.valueOf(max).length() + "d/%d";
+		stringBuilder.append(String.format(template, current, max));
+		System.out.print(stringBuilder.toString());		
 	}
 
 	private void printResultsCSV(boolean printHeader, Map<Integer, AnalysisResults> resultMap) {
