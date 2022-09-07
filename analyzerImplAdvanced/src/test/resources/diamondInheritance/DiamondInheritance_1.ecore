@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore">
+  <ecore:EPackage name="myEcore" nsURI="http://www.example.org/myEcore" nsPrefix="myEcore"/>
+  <ecore:EPackage name="myEcore" nsURI="http://www.example.org/myEcore" nsPrefix="myEcore">
+    <eClassifiers xsi:type="ecore:EClass" name="DiamondRight" eSuperTypes="#/1/DiamondTop"/>
+    <eClassifiers xsi:type="ecore:EClass" name="DiamondTop"/>
+    <eClassifiers xsi:type="ecore:EClass" name="DiamondBottom" eSuperTypes="#/1/DiamondRight #/1/DiamondLeft"/>
+    <eClassifiers xsi:type="ecore:EClass" name="DiamondLeft" eSuperTypes="#/1/DiamondTop"/>
+  </ecore:EPackage>
+</xmi:XMI>

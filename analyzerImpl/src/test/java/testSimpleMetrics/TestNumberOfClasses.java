@@ -1,4 +1,4 @@
-package testSimpleAntipattern;
+package testSimpleMetrics;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,30 +14,30 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import metamodelUtil.MetamodelHelper;
-import simpleAntipattern.ClassHasMoreThanOneID;
+import simpleMetrics.NumberOfClasses;
 
-public class TestClassHasMoreThanOneID {
-	private static Logger logger = LogManager.getLogger(TestClassHasMoreThanOneID.class.getName());
-
+public class TestNumberOfClasses {
+	private static Logger logger = LogManager.getLogger(TestNumberOfClasses.class.getName());
+	
 	private static final String resourcePathGeneral = "src/test/resources";
-	private static final String resourcePathSpecial = "src/test/resources/classHasMoreThanOneID";
+	private static final String resourcePathSpecial = "src/test/resources/numberOfClasses";
 
 	@ParameterizedTest
-	@MethodSource("provideMetamodelsAndAntipatternCounts")
-	public void testAntipattern(String filename, long expected) {
+	@MethodSource("provideMetamodelsAndMetricValues")
+	public void testMetric(String filename, double expected) {
 		Optional<Resource> optionalMetamodel = MetamodelHelper.loadEcoreMetamodelFromFile(filename);
 		assertTrue(optionalMetamodel.isPresent());
-		ClassHasMoreThanOneID antipattern = new ClassHasMoreThanOneID();
-		long actual = antipattern.evaluate(optionalMetamodel.get());
+		NumberOfClasses metric = new NumberOfClasses();
+		double actual = metric.evaluate(optionalMetamodel.get());
 		assertEquals(expected, actual);
 		logger.info(String.format("Test with parameters '%s' and '%s' succeded.", filename, expected));
 	}
 
-	private static Stream<Arguments> provideMetamodelsAndAntipatternCounts() {
+	private static Stream<Arguments> provideMetamodelsAndMetricValues() {
 		return Stream.of(
-			Arguments.of(resourcePathGeneral + "/GeneralTestModel1.ecore", 3),
-			Arguments.of(resourcePathSpecial + "/ClassHasMoreThanOneID_1.ecore", 1),
-			Arguments.of(resourcePathSpecial + "/ClassHasMoreThanOneID_3.ecore", 3)
+			Arguments.of(resourcePathGeneral + "/GeneralTestModel1.ecore", 25),
+			Arguments.of(resourcePathSpecial + "/NumberOfClasses_1.ecore", 1),
+			Arguments.of(resourcePathSpecial + "/NumberOfClasses_3.ecore", 3)
 		);
 	}
 }

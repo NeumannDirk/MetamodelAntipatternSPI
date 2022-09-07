@@ -98,27 +98,27 @@
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="myShort" eType="ecore:EDataType platform:/plugin/org.eclipse.emf.ecore/model/Ecore.ecore#//EShort"/>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EDataType" name="EInt" instanceTypeName="newDataType2"/>
-    <eClassifiers xsi:type="ecore:EClass" name="TwinClass1"/>
-    <eClassifiers xsi:type="ecore:EClass" name="TwinClass2">
-      <eStructuralFeatures xsi:type="ecore:EReference" name="twinclass1" eType="#/1/TwinClass1"/>
+    <eClassifiers xsi:type="ecore:EClass" name="Parent"/>
+    <eClassifiers xsi:type="ecore:EClass" name="Child3">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="child3" eType="#/1/Parent"/>
     </eClassifiers>
-    <eClassifiers xsi:type="ecore:EClass" name="TwinClass3">
-      <eStructuralFeatures xsi:type="ecore:EReference" name="twinclass2" eType="#/1/TwinClass1"/>
+    <eClassifiers xsi:type="ecore:EClass" name="Child1">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="child1" eType="#/1/Parent"/>
     </eClassifiers>
-    <eClassifiers xsi:type="ecore:EClass" name="TwinClass3">
-      <eStructuralFeatures xsi:type="ecore:EReference" name="twinclass2" eType="#/1/TwinClass1"/>
+    <eClassifiers xsi:type="ecore:EClass" name="Child2">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="child2" eType="#/1/Parent"/>
     </eClassifiers>
-    <eClassifiers xsi:type="ecore:EClass" name="TwinClass3">
-      <eStructuralFeatures xsi:type="ecore:EReference" name="twinclass2" eType="#/1/TwinClass1"/>
+    <eClassifiers xsi:type="ecore:EClass" name="Child4">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="child4" eType="#/1/Parent"/>
     </eClassifiers>
-    <eClassifiers xsi:type="ecore:EClass" name="TwinClass3">
-      <eStructuralFeatures xsi:type="ecore:EReference" name="twinclass2" eType="#/1/TwinClass1"/>
+    <eClassifiers xsi:type="ecore:EClass" name="Child5">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="child5" eType="#/1/Parent"/>
     </eClassifiers>
-    <eClassifiers xsi:type="ecore:EClass" name="TwinClass3">
-      <eStructuralFeatures xsi:type="ecore:EReference" name="twinclass2" eType="#/1/TwinClass1"/>
+    <eClassifiers xsi:type="ecore:EClass" name="Child1">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="child1" eType="#/1/Parent"/>
     </eClassifiers>
-    <eClassifiers xsi:type="ecore:EClass" name="TwinClass3">
-      <eStructuralFeatures xsi:type="ecore:EReference" name="twinclass2" eType="#/1/TwinClass1"/>
+    <eClassifiers xsi:type="ecore:EClass" name="Child2">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="child2" eType="#/1/Parent"/>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="DiamondTop"/>
     <eClassifiers xsi:type="ecore:EClass" name="DiamondRight" eSuperTypes="#/1/DiamondTop"/>
