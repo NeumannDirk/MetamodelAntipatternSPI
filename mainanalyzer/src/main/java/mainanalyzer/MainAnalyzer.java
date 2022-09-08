@@ -42,7 +42,7 @@ public class MainAnalyzer {
 	private final static String loggerLevelDescription = "Set logger level: trace(0), debug(1), info(2), warn(3), error(4), fatal(5). Default is warn(3).";
 	@Option(names = loggerLevelParameter, description = loggerLevelDescription, defaultValue = "3")
 	int loggerLevel = 3;
-	
+
 	private final static String headerParameter = "-header";
 	private final static String headerDescription = "Print header into result csv";
 	@Option(names = headerParameter, description = headerDescription)
@@ -56,7 +56,7 @@ public class MainAnalyzer {
 	private final static String selectionParameter = "-selection";
 	private final static String selectionDescription = "Selection and order of antipattern and metrics to analyze given by ID";
 	@Option(names = selectionParameter, arity = "0..*", split = ",", description = selectionDescription)
-	List<String> shortcutSelection = new ArrayList<String>();
+	List<String> shortcutSelection = null;
 
 	private final static String inputDirectoryParameter = "-inputDirectory";
 	private final static String inputDirectoryDescription = "Directory from which all metamodels should be analysed";
@@ -113,7 +113,7 @@ public class MainAnalyzer {
 		System.out.println(stringBuilder.toString());
 	}
 
-	public static void main(String[] args) throws IOException {		
+	public static void main(String[] args) throws IOException {
 		MainAnalyzer ma = new MainAnalyzer();
 		new CommandLine(ma).parseArgs(args);
 		if (ma.help) {
@@ -132,7 +132,7 @@ public class MainAnalyzer {
 
 		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory(this.inputDirectory);
 		logger.trace(String.format("Found %d potential ecore metamodels to analyze.", ecoreFiles.size()));
-		
+
 		Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
 
 		if (this.sequential) {
@@ -148,13 +148,14 @@ public class MainAnalyzer {
 	}
 
 	public void runParallel(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
-		
+
 		AtomicInteger lock = new AtomicInteger(0);
-		
+
 		ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		logger.trace(String.format("Available Processors: %d", Runtime.getRuntime().availableProcessors()));
 		for (int ecoreFileNumber = 0; ecoreFileNumber < ecoreFiles.size(); ecoreFileNumber++) {
-			executorService.execute(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber), resultMap, shortcutSelection, lock,ecoreFiles.size()));
+			executorService.execute(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber),
+					resultMap, shortcutSelection, lock, ecoreFiles.size()));
 		}
 		executorService.shutdown();
 		try {
@@ -174,18 +175,23 @@ public class MainAnalyzer {
 			Optional<Resource> optionalMetamodel = MetamodelHelper.loadEcoreMetamodelFromFile(ecoreFile);
 
 			optionalMetamodel.ifPresent(metamodel -> {
-				for (Antipattern antipattern : AnalyzerInterfaceLoader.getAllAntipatterns().values().stream()
-						.filter(ap -> shortcutSelection.contains(ap.getShortcut())).collect(Collectors.toList())) {
+				List<Antipattern> antipatternToEvaluate = AnalyzerInterfaceLoader.getAllAntipatterns().values().stream()
+						.filter(ap -> shortcutSelection == null || shortcutSelection.contains(ap.getShortcut()))
+						.collect(Collectors.toList());
+				List<Metric> metricsToEvaluate = AnalyzerInterfaceLoader.getAllMetrics().values().stream()
+						.filter(m -> shortcutSelection == null || shortcutSelection.contains(m.getShortcut()))
+						.collect(Collectors.toList());
+
+				for (Antipattern antipattern : antipatternToEvaluate) {
 					long evaluationResult = antipattern.evaluate(metamodel);
 					analysisResult.addAntipattern(antipattern.getShortcut(), evaluationResult);
 				}
-				for (Metric metric : AnalyzerInterfaceLoader.getAllMetrics().values().stream()
-						.filter(m -> shortcutSelection.contains(m.getShortcut())).collect(Collectors.toList())) {
+				for (Metric metric : metricsToEvaluate) {
 					double evaluationResult = metric.evaluate(metamodel);
 					analysisResult.addMetric(metric.getShortcut(), evaluationResult);
 				}
 			});
-			if(this.loggerLevel > 1) {
+			if (this.loggerLevel > 1) {
 				this.printSequentialProgressBar(ecoreFileNumber, ecoreFiles.size());
 			}
 		}
@@ -199,11 +205,11 @@ public class MainAnalyzer {
 				+ " ".repeat(percent50 == 0 ? 49 : 50 - percent50));
 		String template = "] %" + String.valueOf(max).length() + "d/%d";
 		stringBuilder.append(String.format(template, current, max));
-		System.out.print(stringBuilder.toString());		
+		System.out.print(stringBuilder.toString());
 	}
 
 	private void printResultsCSV(boolean printHeader, Map<Integer, AnalysisResults> resultMap) {
-		
+
 		String date = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
 		String execution = this.sequential ? "seq" : "par";
 		String fileName = "metamodel_analysis_results.csv";

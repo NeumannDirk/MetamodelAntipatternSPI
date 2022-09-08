@@ -34,20 +34,24 @@ public class MetamodelAnalysisThread implements Runnable {
 	}
 
 	@Override
-	public void run() {
+	public void run() { 
 		AnalysisResults analysisResult = new AnalysisResults(ecoreFileNumber);
 		resultMap.put(ecoreFileNumber, analysisResult);
 
 		Optional<Resource> optionalMetamodel = MetamodelHelper.loadEcoreMetamodelFromFile(ecoreFile);
+		optionalMetamodel.ifPresent(metamodel -> {			
+			List<Antipattern> antipatternToEvaluate = AnalyzerInterfaceLoader.getAllAntipatterns().values().stream()
+					.filter(ap -> shortcutSelection == null || shortcutSelection.contains(ap.getShortcut()))
+					.collect(Collectors.toList());
+			List<Metric> metricsToEvaluate = AnalyzerInterfaceLoader.getAllMetrics().values().stream()
+					.filter(m -> shortcutSelection == null || shortcutSelection.contains(m.getShortcut()))
+					.collect(Collectors.toList());
 
-		optionalMetamodel.ifPresent(metamodel -> {
-			for (Antipattern antipattern : AnalyzerInterfaceLoader.getAllAntipatterns().values().stream()
-					.filter(ap -> shortcutSelection.contains(ap.getShortcut())).collect(Collectors.toList())) {
+			for (Antipattern antipattern : antipatternToEvaluate) {
 				long evaluationResult = antipattern.evaluate(metamodel);
 				analysisResult.addAntipattern(antipattern.getShortcut(), evaluationResult);
 			}
-			for (Metric metric : AnalyzerInterfaceLoader.getAllMetrics().values().stream()
-					.filter(m -> shortcutSelection.contains(m.getShortcut())).collect(Collectors.toList())) {
+			for (Metric metric : metricsToEvaluate) {
 				double evaluationResult = metric.evaluate(metamodel);
 				analysisResult.addMetric(metric.getShortcut(), evaluationResult);
 			}
