@@ -36,6 +36,7 @@ public class TestHypergraphEntropy {
 
 	private static Stream<Arguments> provideMetamodelsAndMetricValues() {
 		return Stream.of(
+			Arguments.of(resourcePathGeneral + "/GeneralTestModel1.ecore", 3.1634240504234032d),
 			Arguments.of(resourcePathSpecial + "/HypergraphEntropy_empty.ecore", 0.0d),
 			Arguments.of(resourcePathSpecial + "/HypergraphEntropy_oneClass.ecore", 0.0d),
 			Arguments.of(resourcePathSpecial + "/HypergraphEntropy_oneClass2.ecore", 0.0d),
