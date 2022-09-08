@@ -13,9 +13,22 @@ import analyzerUtil.MetamodelLoader;
 import analyzerUtil.ParameterAndLoggerHelper;
 import mainanalyzer.MainAnalyzer;
 import picocli.CommandLine;
+import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import results.AnalysisResults;
 
+@Command(
+		showDefaultValues = true,
+		usageHelpAutoWidth = true,
+		name = "ConcurrencyComparator",
+		description = "%n" + "Benchmark to compare metamodel analysis with and without parallelization on file level." + "%n",
+		header = "%n" + "MetamodelAntipatternSPI%nPraktikum Ingenieursmäßige Software Entwicklung - SS 2022 - KIT" + "%n",
+		footer = "%n" + "AUTHOR" + "%n" + "Dirk Neumann (https://github.com/NeumannDirk), uehpw(at)student.kit.edu"
+				+ "%n%n" + "REPORTING BUGS" + "%n" + "Issue on https://github.com/NeumannDirk/MetamodelAntipatternSPI"
+				+ "%n%n" + "COPYRIGHT" + "%n" + "Copyright (c) 2022 Creative Commons 4.0 BY-SA-NC"
+				+ "%n%n" + "LAST UPDATE" + "%n" + "07.09.2022",
+		synopsisHeading = "SYNOPSIS" + "%n",
+		requiredOptionMarker = '*')
 /**
  * Class to compare sequential and concurrent execution of the metamodel
  * analysis.
@@ -26,46 +39,21 @@ import results.AnalysisResults;
 public class ConcurrencyComparator {
 	private static Logger logger = LogManager.getLogger(ConcurrencyComparator.class.getName());
 	
-	private final static String helpParameter = "--help";
-	private final static String helpDescription = "Show all commandline parameters";
-	@Option(names = helpParameter, description = helpDescription)
+	@Option(names = {"--help", "--h"}, usageHelp = true, description = "Display this help and exit")
 	boolean help;
 
-	private final static String inputDirectoryParameter = "-inputDirectory";
-	private final static String inputDirectoryDescription = "Directory from which all metamodels should be analysed";
-	@Option(names = inputDirectoryParameter, description = inputDirectoryDescription)
+	@Option(names = {"-inputDirectory", "-in"}, required = true, description = "Directory from which all metamodels should be analysed", paramLabel = "DIR")
 	private String inputDirectory = null;
 
-	private final static String repetitionsDirectoryParameter = "-repetitions";
-	private final static String repetitionsDirectoryDescription = "Number of repetitions of each execution version for comparisson. Default = 10.";
-	@Option(names = repetitionsDirectoryParameter, description = repetitionsDirectoryDescription)
+	@Option(names = {"-repetitions", "-rep"}, description = "Number of repetitions of each execution version for comparisson", defaultValue = "10")
 	private int repetitions = 10;
-	
-	private static void printHelp() {
-
-		final int widthColumn1 = 25;
-		final int widthColumn2 = 100;
-		final String headingSeparator = "=".repeat(widthColumn1 + widthColumn2 + 3) + System.lineSeparator();
-		final String rowSeparator = "-".repeat(widthColumn1 + widthColumn2 + 3) + System.lineSeparator();
-		final String template = "|%-" + widthColumn1 + "s|%-" + widthColumn2 + "s|" + System.lineSeparator();
-
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(headingSeparator);
-		stringBuilder.append(String.format(template, "Parameter", "Description"));
-		stringBuilder.append(headingSeparator);
-		stringBuilder.append(String.format(template, helpParameter, helpDescription));
-		stringBuilder.append(rowSeparator);
-		stringBuilder.append(String.format(template, inputDirectoryParameter, inputDirectoryDescription));
-		stringBuilder.append(rowSeparator);
-		System.out.println(stringBuilder.toString());
-	}
 
 	public static void main(String[] args) {
 		ConcurrencyComparator cc = new ConcurrencyComparator();
-		new CommandLine(cc).parseArgs(args);
+		CommandLine commandLine = new CommandLine(cc);
+		commandLine.parseArgs(args);
 		if (cc.help) {
-			CommandLine.usage(new MainAnalyzer(), System.out);
-			printHelp();
+			commandLine.usage(System.out);
 		} else {
 			cc.start();
 		}

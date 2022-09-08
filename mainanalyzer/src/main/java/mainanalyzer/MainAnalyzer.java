@@ -3,7 +3,6 @@ package mainanalyzer;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -27,45 +26,54 @@ import analyzerUtil.ParameterAndLoggerHelper;
 import concurrentExecution.MetamodelAnalysisThread;
 import metamodelUtil.MetamodelHelper;
 import picocli.CommandLine;
+import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import results.AnalysisResults;
 
+@Command(
+		showDefaultValues = true,
+		usageHelpAutoWidth = true,
+		name = "MainAnalyzer",
+		description = "%n" + "Project to improve the evaluation of ecore metamodel with respect to antipattern and metrics." + "%n",
+		version="MetamodelAntipatternSPI bv1.0",
+		header = "%n" + "MetamodelAntipatternSPI%nPraktikum Ingenieursmäßige Software Entwicklung - SS 2022 - KIT" + "%n",
+		footer = "%n" + "AUTHOR" + "%n" + "Dirk Neumann (https://github.com/NeumannDirk), uehpw(at)student.kit.edu"
+				+ "%n%n" + "REPORTING BUGS" + "%n" + "Issue on https://github.com/NeumannDirk/MetamodelAntipatternSPI"
+				+ "%n%n" + "COPYRIGHT" + "%n" + "Copyright (c) 2022 Creative Commons 4.0 BY-SA-NC"
+				+ "%n%n" + "LAST UPDATE" + "%n" + "07.09.2022",
+		synopsisHeading = "SYNOPSIS" + "%n",
+		requiredOptionMarker = '*')
+/**
+ * Main entry point for the analysis of metamodel with respect to the found antipattern and metrics.
+ * 
+ * @author DirkNeumann
+ *
+ */
 public class MainAnalyzer {
 	private static Logger logger = LogManager.getLogger(MainAnalyzer.class.getName());
+	
+	@Option(names = { "--v", "--version" }, versionHelp = true, description = "Print version information and exit")
+	boolean versionRequested;
 
-	private final static String helpParameter = "--help";
-	private final static String helpDescription = "Show all commandline parameters";
-	@Option(names = helpParameter, description = helpDescription)
+	@Option(names = {"--help", "--h"}, usageHelp = true, description = "Display this help and exit")
 	boolean help;
 
-	private final static String loggerLevelParameter = "-log";
-	private final static String loggerLevelDescription = "Set logger level: trace(0), debug(1), info(2), warn(3), error(4), fatal(5). Default is warn(3).";
-	@Option(names = loggerLevelParameter, description = loggerLevelDescription, defaultValue = "3")
+	@Option(names = {"-log_level", "-log"}, description = "Set logger level: trace(0), debug(1), info(2), warn(3), error(4), fatal(5).", defaultValue = "3", paramLabel = "[0-5]")
 	int loggerLevel = 3;
 
-	private final static String headerParameter = "-header";
-	private final static String headerDescription = "Print header into result csv";
-	@Option(names = headerParameter, description = headerDescription)
+	@Option(names = "-header", description = "Print header into result csv", defaultValue = "false")
 	boolean header;
 
-	private final static String sequentialParameter = "-sequential";
-	private final static String sequentialDescription = "Execute sequential";
-	@Option(names = sequentialParameter, description = sequentialDescription)
+	@Option(names = {"-sequential","-seq"}, description = "Execute sequential")
 	boolean sequential;
 
-	private final static String selectionParameter = "-selection";
-	private final static String selectionDescription = "Selection and order of antipattern and metrics to analyze given by ID";
-	@Option(names = selectionParameter, arity = "0..*", split = ",", description = selectionDescription)
-	List<String> shortcutSelection = null;
+	@Option(names = {"-selection", "-sel"}, arity = "0..*", split = ",", description = "Selection and order of antipattern and metrics to analyze given by ID", paramLabel = "STR")
+	List<String> selection = null;
 
-	private final static String inputDirectoryParameter = "-inputDirectory";
-	private final static String inputDirectoryDescription = "Directory from which all metamodels should be analysed";
-	@Option(names = inputDirectoryParameter, description = inputDirectoryDescription)
+	@Option(names = {"-inputDirectory", "-in"}, required = true, description = "Directory from which all metamodels should be analysed", paramLabel = "DIR")
 	private String inputDirectory = null;
 
-	private final static String outputDirectoryParameter = "-outputDirectory";
-	private final static String outputDirectoryDescription = "Directory in which the result csv file schould be saved";
-	@Option(names = outputDirectoryParameter, description = outputDirectoryDescription)
+	@Option(names = {"-outputDirectory", "-out"}, description = "Directory in which the result csv file schould be saved", paramLabel = "DIR")
 	private String outputDirectory = null;
 
 	private boolean checkCommandLineParameters() {
@@ -84,41 +92,14 @@ public class MainAnalyzer {
 		return returnValue;
 	}
 
-	private static void printHelp() {
-
-		final int widthColumn1 = 25;
-		final int widthColumn2 = 100;
-		final String headingSeparator = "=".repeat(widthColumn1 + widthColumn2 + 3) + System.lineSeparator();
-		final String rowSeparator = "-".repeat(widthColumn1 + widthColumn2 + 3) + System.lineSeparator();
-		final String template = "|%-" + widthColumn1 + "s|%-" + widthColumn2 + "s|" + System.lineSeparator();
-
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(headingSeparator);
-		stringBuilder.append(String.format(template, "Parameter", "Description"));
-		stringBuilder.append(headingSeparator);
-		stringBuilder.append(String.format(template, helpParameter, helpDescription));
-		stringBuilder.append(rowSeparator);
-		stringBuilder.append(String.format(template, loggerLevelParameter, loggerLevelDescription));
-		stringBuilder.append(rowSeparator);
-		stringBuilder.append(String.format(template, headerParameter, headerDescription));
-		stringBuilder.append(rowSeparator);
-		stringBuilder.append(String.format(template, sequentialParameter, sequentialDescription));
-		stringBuilder.append(rowSeparator);
-		stringBuilder.append(String.format(template, selectionParameter, selectionDescription));
-		stringBuilder.append(rowSeparator);
-		stringBuilder.append(String.format(template, inputDirectoryParameter, inputDirectoryDescription));
-		stringBuilder.append(rowSeparator);
-		stringBuilder.append(String.format(template, outputDirectoryParameter, outputDirectoryDescription));
-		stringBuilder.append(rowSeparator);
-		System.out.println(stringBuilder.toString());
-	}
-
 	public static void main(String[] args) throws IOException {
 		MainAnalyzer ma = new MainAnalyzer();
-		new CommandLine(ma).parseArgs(args);
+		CommandLine commandLine = new CommandLine(ma);
+		commandLine.parseArgs(args);
 		if (ma.help) {
-			CommandLine.usage(new MainAnalyzer(), System.out);
-			printHelp();
+			commandLine.usage(System.out);
+		} else if(ma.versionRequested) {
+			commandLine.printVersionHelp(System.out);
 		} else {
 			ma.start();
 		}
@@ -142,7 +123,7 @@ public class MainAnalyzer {
 		}
 		logger.trace("Analysis completed. Printing results...");
 
-		AnalysisResults.setShortcutSelection(shortcutSelection);
+		AnalysisResults.setShortcutSelection(selection);
 		printResultsCSV(header, resultMap);
 		logger.trace("Results stored. Done.");
 	}
@@ -155,7 +136,7 @@ public class MainAnalyzer {
 		logger.trace(String.format("Available Processors: %d", Runtime.getRuntime().availableProcessors()));
 		for (int ecoreFileNumber = 0; ecoreFileNumber < ecoreFiles.size(); ecoreFileNumber++) {
 			executorService.execute(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber),
-					resultMap, shortcutSelection, lock, ecoreFiles.size()));
+					resultMap, selection, lock, ecoreFiles.size()));
 		}
 		executorService.shutdown();
 		try {
@@ -176,10 +157,10 @@ public class MainAnalyzer {
 
 			optionalMetamodel.ifPresent(metamodel -> {
 				List<Antipattern> antipatternToEvaluate = AnalyzerInterfaceLoader.getAllAntipatterns().values().stream()
-						.filter(ap -> shortcutSelection == null || shortcutSelection.contains(ap.getShortcut()))
+						.filter(ap -> selection == null || selection.contains(ap.getShortcut()))
 						.collect(Collectors.toList());
 				List<Metric> metricsToEvaluate = AnalyzerInterfaceLoader.getAllMetrics().values().stream()
-						.filter(m -> shortcutSelection == null || shortcutSelection.contains(m.getShortcut()))
+						.filter(m -> selection == null || selection.contains(m.getShortcut()))
 						.collect(Collectors.toList());
 
 				for (Antipattern antipattern : antipatternToEvaluate) {
