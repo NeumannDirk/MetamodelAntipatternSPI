@@ -8,16 +8,14 @@ import org.eclipse.emf.ecore.resource.Resource;
 import analyzerInterfaces.AbstractAntipattern;
 import metamodelUtil.MetamodelHelper;
 
-public class CompleteMalformedMultplicityElement extends AbstractAntipattern {
+public class RestrictedMalformedMultiplicityElement extends AbstractAntipattern {
 
-	private static final String name = "CompleteMalformedMultplicityElement";
-	private static final String shortcut = "MME_COM";
-	private static final String description = 
-			"This antipattern describes an EStructuralFeature which has a malformed multiplicity. "
-			+ "This includes the case in which no lower bound is set but an upper bound is set "
-			+ "as well as the case in which both bounds are set but the upper bound is lower than the lower bound.";
+	private static final String name = "RestrictedMalformedMultiplicityElement";
+	private static final String shortcut = "MME_RES";
+	private static final String description = "This antipattern describes an EStructuralFeature which has a malformed multiplicity. "
+			+ "This includes only the case in which both bounds are set but the upper bound is lower than the lower bound.";
 
-	public CompleteMalformedMultplicityElement() {
+	public RestrictedMalformedMultiplicityElement() {
 		super(name, shortcut, description);
 	}
 
@@ -25,15 +23,11 @@ public class CompleteMalformedMultplicityElement extends AbstractAntipattern {
 	public Long evaluate(Resource resource) {
 		List<EStructuralFeature> eStructuralFeatures = MetamodelHelper
 				.getAllModelElementsOfGivenType(EStructuralFeature.class, resource);
-		if (eStructuralFeatures.size() == 0) {
-			return 0L;
-		}
-
 		long numberOfAntipatterns = 0;
 
 		// [*,*] ==> ok
 		// [x,*] ==> ok
-		// [*,y] ==> nicht ok
+		// [*,y] ==> ok
 		// [x,y] ==> nicht ok wenn x > y
 		for (EStructuralFeature esf : eStructuralFeatures) {
 			int lo = esf.getLowerBound();
@@ -42,13 +36,8 @@ public class CompleteMalformedMultplicityElement extends AbstractAntipattern {
 			if ((lo != -1) && (up != -1) && (lo > up)) {
 				numberOfAntipatterns++;
 			}
-			// [*,y] ==> nicht ok
-			if ((lo == -1) && (up != -1)) {
-				numberOfAntipatterns++;
-			}
 		}
 
 		return numberOfAntipatterns;
 	}
-
 }

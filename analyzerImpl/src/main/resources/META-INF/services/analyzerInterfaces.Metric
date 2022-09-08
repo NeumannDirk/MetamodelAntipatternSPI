@@ -1,1 +1,3 @@
+simpleMetrics.AverageCountingComplexity
 simpleMetrics.NumberOfClasses
+simpleMetrics.TotalCountingComplexity

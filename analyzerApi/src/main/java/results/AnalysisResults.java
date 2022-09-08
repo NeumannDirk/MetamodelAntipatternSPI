@@ -23,7 +23,9 @@ public class AnalysisResults {
 	private static List<String> shortcutSelection;
 	
 	public static void setShortcutSelection(List<String> shortcutSelection) {
-		AnalysisResults.shortcutSelection = checkShortCuts(shortcutSelection);
+		if(shortcutSelection != null && shortcutSelection.size() > 0) {
+			AnalysisResults.shortcutSelection = checkShortCuts(shortcutSelection);
+		}
 	}
 	
 	public static String getHeaderCSV() {
