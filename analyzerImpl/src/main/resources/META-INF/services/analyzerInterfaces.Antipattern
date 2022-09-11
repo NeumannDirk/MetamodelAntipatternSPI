@@ -1,5 +1,4 @@
 simpleAntipattern.ClassHasMoreThanOneID
-simpleAntipattern.ClassifierNotInPackageContained
 simpleAntipattern.CompleteMalformedMultiplicityElement
 simpleAntipattern.EnumerationHasAttributes
 simpleAntipattern.MultiplePossibleElementContainers
