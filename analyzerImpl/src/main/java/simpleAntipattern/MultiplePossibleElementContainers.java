@@ -1,6 +1,8 @@
 package simpleAntipattern;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.ecore.EClass;
@@ -22,20 +24,23 @@ public class MultiplePossibleElementContainers extends AbstractAntipattern {
 
 	@Override
 	public Long evaluate(Resource resource) {
-		long numberOfAntipatterns = 0;
 		List<EClass> eClasses = MetamodelHelper.getAllModelElementsOfGivenType(EClass.class, resource);
 		List<EReference> eReferences = MetamodelHelper.getAllModelElementsOfGivenType(EReference.class, resource);
 		List<EReference> containments = eReferences.stream().filter(eRef -> eRef.isContainment()
 				&& eRef.getEReferenceType() != null && eClasses.contains(eRef.getEReferenceType()))
 				.collect(Collectors.toList());
-		for (EReference containment1 : containments) {
-			for (EReference containment2 : containments) {
-				if (containment1 != containment2
-						&& containment1.getEReferenceType() == containment2.getEReferenceType()) {
-					numberOfAntipatterns++;
+		
+		Set<EClass> multipleContainers = new HashSet<EClass>();		
+		for (int i = 0; i < containments.size() - 1; i++) {
+			EReference containment1 = containments.get(i);
+			for (int j = i + 1; j < containments.size(); j++) {
+				EReference containment2 = containments.get(j);
+				if(containment1.getEReferenceType() == containment2.getEReferenceType()) {
+					multipleContainers.add(containment1.getEReferenceType());
 				}
 			}
 		}
-		return numberOfAntipatterns;
+		
+		return (long) multipleContainers.size();
 	}
 }
