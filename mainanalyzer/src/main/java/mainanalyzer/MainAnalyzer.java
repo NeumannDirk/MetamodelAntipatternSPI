@@ -73,6 +73,12 @@ public class MainAnalyzer {
 
 	@Option(names = {"-selection", "-sel"}, arity = "0..*", split = ",", description = "Selection and order of antipattern and metrics to analyze given by ID", paramLabel = "STR")
 	List<String> selection = null;
+	
+	@Option(names = "-no_caching", description = "Deactivates caching during the metamodel analysis to improve performance")
+	boolean noCaching;
+	
+	@Option(names = {"-no_progresss_bar", "-no_progress"}, description = "Deactivates printing the progress bar during execution.")
+	boolean noProgressBar;
 
 	@Option(names = {"-csv_separator", "-csv_sep"}, description = "Separator for the csv output", paramLabel = "STR", defaultValue = ",")
 	private String csvSeparator = ",";
@@ -90,11 +96,11 @@ public class MainAnalyzer {
 		}
 		ParameterAndLoggerHelper.setLoggerLevel(this.loggerLevel);
 		if (this.inputDirectory == null) {
-			System.out.println("The parameter \"-inputDirectory\" must be set.");
+			logger.fatal("The parameter \"-inputDirectory\" must be set.");
 			returnValue = false;
 		}
 		if (this.outputDirectory == null) {
-			System.out.println("It is recommended to set the parameter \"-outputDirectory\".");
+			logger.info("It is recommended to set the parameter \"-outputDirectory\".");
 		}
 		return returnValue;
 	}
@@ -118,6 +124,7 @@ public class MainAnalyzer {
 			return;
 		}
 		AnalysisResults.setSeparator(this.csvSeparator);
+		MetamodelHelper.useCaching = !this.noCaching;
 
 		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory(this.inputDirectory);
 		logger.trace(String.format("Found %d potential ecore metamodels to analyze.", ecoreFiles.size()));
@@ -125,9 +132,9 @@ public class MainAnalyzer {
 		Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
 
 		if (this.sequential) {
-			runSequential(ecoreFiles, resultMap);
+			runSequential(ecoreFiles, resultMap, this.noProgressBar);
 		} else {
-			runParallel(ecoreFiles, resultMap);
+			runParallel(ecoreFiles, resultMap, this.noProgressBar);
 		}
 		logger.trace("Analysis completed. Printing results...");
 		
@@ -135,13 +142,8 @@ public class MainAnalyzer {
 		printResultsCSV(header, resultMap);
 		logger.trace("Results stored. Done.");
 	}
-
-	public void runChached(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
-		MetamodelHelper.useCaching = true;
-		runParallel(ecoreFiles, resultMap);		
-	}
-
-	public void runParallel(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
+	
+	public void runParallel(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap, boolean noProgressBar) {
 		AtomicInteger lock = new AtomicInteger(0);
 		
 		int numberOfThreads = Runtime.getRuntime().availableProcessors();
@@ -150,14 +152,19 @@ public class MainAnalyzer {
 		
 		List<Callable<AnalysisResults>> tasks = new ArrayList<Callable<AnalysisResults>>(ecoreFiles.size());
 		for (int ecoreFileNumber = 0; ecoreFileNumber < ecoreFiles.size(); ecoreFileNumber++) {
-			tasks.add(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber), selection, lock, ecoreFiles.size()));
+			tasks.add(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber), selection,
+					lock, ecoreFiles.size(), noProgressBar));
 		}
 		
 		List<Future<AnalysisResults>> futures = null;
 		
 		try {
 			futures = executorService.invokeAll(tasks);
-			System.out.print("\rProgress 100% [" + "=".repeat(49) + ">] " + ecoreFiles.size() + "/" + ecoreFiles.size());
+			if(!noProgressBar) {
+				//Sometimes the last tasks do npt print to the console anymore. If here all tasks are done,
+				//just print an 100% prograss bar to also visualize that all tasks are done.
+				System.out.print("\rProgress 100% [" + "=".repeat(49) + ">] " + ecoreFiles.size() + "/" + ecoreFiles.size());
+			}
 			executorService.shutdown();
 		} catch (InterruptedException executionException) {
 			logger.error(String.format("Error occurred during parallel analysis: %s", executionException.getMessage()));
@@ -172,7 +179,7 @@ public class MainAnalyzer {
 		}
 	}
 
-	public void runSequential(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
+	public void runSequential(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap, boolean noProgressBar) {
 		for (int ecoreFileNumber = 0; ecoreFileNumber < ecoreFiles.size(); ecoreFileNumber++) {
 
 			String ecoreFile = ecoreFiles.get(ecoreFileNumber);
@@ -198,7 +205,7 @@ public class MainAnalyzer {
 					analysisResult.addMetric(metric.getShortcut(), evaluationResult);
 				}
 			});
-			if (this.loggerLevel > 1) {
+			if (!noProgressBar && this.loggerLevel > 1) {
 				this.printSequentialProgressBar(ecoreFileNumber, ecoreFiles.size());
 			}
 		}
@@ -218,12 +225,11 @@ public class MainAnalyzer {
 	private void printResultsCSV(boolean printHeader, Map<Integer, AnalysisResults> resultMap) {
 
 		String date = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
-		String execution = this.sequential ? "seq" : "par";
 		String fileName = "metamodel_analysis_results.csv";
 
 		FileWriter fileWriter;
 		try {
-			String completeFileName = date + "_" + execution + "_" + fileName;
+			String completeFileName = date + "_" + fileName;
 			if (outputDirectory != null) {
 				completeFileName = outputDirectory + completeFileName;
 			}

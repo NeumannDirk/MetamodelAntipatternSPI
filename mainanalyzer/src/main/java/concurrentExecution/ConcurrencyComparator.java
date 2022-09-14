@@ -47,6 +47,9 @@ public class ConcurrencyComparator {
 
 	@Option(names = {"-repetitions", "-rep"}, description = "Number of repetitions of each execution version for comparisson", defaultValue = "10")
 	private int repetitions = 10;
+	
+	@Option(names = {"-progresss_bar", "-progress"}, description = "Activates printing the progress bar during execution.")
+	boolean printProgressBar;
 
 	public static void main(String[] args) {
 		ConcurrencyComparator cc = new ConcurrencyComparator();
@@ -59,7 +62,8 @@ public class ConcurrencyComparator {
 		}
 	}
 	
-	public void start() {		
+	public void start() {
+		//During the benchmark, printing to the console is used since a user might want to follow the benchmark execution. 
 		ParameterAndLoggerHelper.setLoggerLevel(Level.INFO);
 
 		long[] sequentialDurations = new long[this.repetitions];
@@ -71,11 +75,13 @@ public class ConcurrencyComparator {
 		for (int sequentialIndex = 0; sequentialIndex < this.repetitions; sequentialIndex++) {
 			long start = System.currentTimeMillis();
 			Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
-			new MainAnalyzer().runSequential(ecoreFiles, resultMap);
+			new MainAnalyzer().runSequential(ecoreFiles, resultMap, this.printProgressBar);
 			long end = System.currentTimeMillis();
 			long duration = end -start;
-			//newline behind progress bar
-			System.out.println();
+			if(this.printProgressBar) {
+				//newline behind progress bar
+				System.out.println();			
+			}
 			String status = String.format("Sequential run %2d/%2d took %s", sequentialIndex + 1, this.repetitions, convertSeconds(Math.round(0.001d * duration)));
 			System.out.println(status);
 			logger.info(status);
@@ -85,11 +91,13 @@ public class ConcurrencyComparator {
 		for (int parallelIndex = 0; parallelIndex < this.repetitions; parallelIndex++) {
 			long start = System.currentTimeMillis();
 			Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
-			new MainAnalyzer().runParallel(ecoreFiles, resultMap);
+			new MainAnalyzer().runParallel(ecoreFiles, resultMap, this.printProgressBar);
 			long end = System.currentTimeMillis();
 			long duration = end -start;
-			//newline behind progress bar
-			System.out.println();
+			if(this.printProgressBar) {
+				//newline behind progress bar
+				System.out.println();			
+			}
 			String status = String.format("Parallel run %2d/%2d took %s", parallelIndex + 1, this.repetitions, convertSeconds(Math.round(0.001d * duration)));
 			System.out.println(status);
 			logger.info(status);

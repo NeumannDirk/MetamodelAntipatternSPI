@@ -22,13 +22,15 @@ public class MetamodelAnalysisThread implements Callable<AnalysisResults> {
 	List<String> shortcutSelection;
 	private AtomicInteger lock;
 	private int max;
+	private boolean noProgressBar;
 
-	public MetamodelAnalysisThread(int ecoreFileNumber, String ecoreFile, List<String> shortcutSelection, AtomicInteger lock, int max) {
+	public MetamodelAnalysisThread(int ecoreFileNumber, String ecoreFile, List<String> shortcutSelection, AtomicInteger lock, int max, boolean noProgressBar) {
 		this.ecoreFileNumber = ecoreFileNumber;
 		this.ecoreFile = ecoreFile;
 		this.shortcutSelection = shortcutSelection;
 		this.lock = lock;
 		this.max = max;
+		this.noProgressBar = noProgressBar;
 	}
 
 	@Override
@@ -55,7 +57,9 @@ public class MetamodelAnalysisThread implements Callable<AnalysisResults> {
 			MetamodelHelper.dropCache(metamodel);
 		});
 		analysisResult.prepareContentString();
-		printProgressBar();
+		if(!this.noProgressBar) {
+			printProgressBar();
+		}
 		return analysisResult;
 	}
 

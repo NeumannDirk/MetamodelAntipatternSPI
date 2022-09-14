@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import analyzerUtil.MetamodelLoader;
 import analyzerUtil.ParameterAndLoggerHelper;
 import mainanalyzer.MainAnalyzer;
+import metamodelUtil.MetamodelHelper;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -48,6 +49,9 @@ public class CachingComparator {
 	@Option(names = {"-repetitions", "-rep"}, description = "Number of repetitions of each execution version for comparisson", defaultValue = "10")
 	private int repetitions = 10;
 	
+	@Option(names = {"-progresss_bar", "-progress"}, description = "Activates printing the progress bar during execution.")
+	boolean noProgressBar;
+	
 	public static void main(String[] args) {
 		CachingComparator cc = new CachingComparator();
 		CommandLine commandLine = new CommandLine(cc);
@@ -59,7 +63,8 @@ public class CachingComparator {
 		}
 	}
 	
-	public void start() {		
+	public void start() {
+		//During the benchmark, printing to the console is used since a user might want to follow the benchmark execution.
 		ParameterAndLoggerHelper.setLoggerLevel(Level.INFO);
 
 		long[] cachedDurations = new long[this.repetitions];
@@ -71,25 +76,30 @@ public class CachingComparator {
 		for (int parallelIndex = 0; parallelIndex < this.repetitions; parallelIndex++) {
 			long start = System.currentTimeMillis();
 			Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
-			new MainAnalyzer().runParallel(ecoreFiles, resultMap);
+			new MainAnalyzer().runParallel(ecoreFiles, resultMap, this.noProgressBar);
 			long end = System.currentTimeMillis();
 			long duration = end - start;
-			//newline behind progress bar
-			System.out.println();
+			if(!this.noProgressBar) {
+				//newline behind progress bar
+				System.out.println();			
+			}
 			String status = String.format("Parallel run %2d/%2d took %s", parallelIndex + 1, this.repetitions, convertSeconds(Math.round(0.001d * duration)));
 			System.out.println(status);
 			logger.info(status);
 			parallelDurations[parallelIndex] = duration;
 		}
 		
+		MetamodelHelper.useCaching = true;
 		for (int cachedIndex = 0; cachedIndex < this.repetitions; cachedIndex++) {
 			long start = System.currentTimeMillis();
 			Map<Integer, AnalysisResults> resultMap = new ConcurrentHashMap<Integer, AnalysisResults>(ecoreFiles.size());
-			new MainAnalyzer().runChached(ecoreFiles, resultMap);
+			new MainAnalyzer().runParallel(ecoreFiles, resultMap, this.noProgressBar);
 			long end = System.currentTimeMillis();
 			long duration = end - start;
-			//newline behind progress bar
-			System.out.println();
+			if(!this.noProgressBar) {
+				//newline behind progress bar
+				System.out.println();			
+			}
 			String status = String.format("Cached run %2d/%2d took %s", cachedIndex + 1, this.repetitions, convertSeconds(Math.round(0.001d * duration)));
 			System.out.println(status);
 			logger.info(status);
@@ -99,7 +109,6 @@ public class CachingComparator {
 		long averageSequentialDuration = Math.round((0.001d * Arrays.stream(cachedDurations).reduce(0, (a, b) -> a + b)) / this.repetitions);
 		long averageParallelDuration = Math.round((0.001d * Arrays.stream(parallelDurations).reduce(0, (a, b) -> a + b)) / this.repetitions);
 
-		//newline behind progress bar
 		System.out.println();
 		System.out.println(String.format("Parallel runs on average took %s.", convertSeconds(averageParallelDuration)));
 		System.out.println(String.format("Cached runs on average took %s.", convertSeconds(averageSequentialDuration) ));
