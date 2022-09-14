@@ -1,6 +1,16 @@
 # MetamodelAntipatternSPI
 
-This repository contains the software artifacts for the university course "Praktikum: Ingenieursmäßige Software-Entwicklung" at the KIT (Karlsruher Institut für Technologie). Goal is to implement a modular framework to analyse metamodels with respect to the prevalence of different metamodel antipatterns and at the same time asses different metrics to categorize metamodels and make findings more expressive. Another focus is on the parellelisation and overall speed of the evaluation of the metamodels.
+This repository contains the software artifacts for the university course "Praktikum: Ingenieursmäßige Software-Entwicklung" at the KIT (Karlsruher Institut für Technologie). Goal is to implement a modular framework to analyse the quality of metamodels with respect to the prevalence of different metamodel antipatterns and different metrics. There is a special focus on modularity and on overall performance which is explained later.
+
+## Synopsis
+```
+//Main Analysis
+java -cp [classpath elements] mainanalyzer.MainAnalyzer -inputDirectory "<input directory>" [more options]
+//Evaluate Parallelization
+java -cp [classpath elements] concurrentExecution.ConcurrencyComparator -inputDirectory "<input directory>" [more options]
+//Evaluate Caching
+java -cp [classpath elements] concurrentExecution.CachingComparator -inputDirectory "<input directory>" [more options]
+```
 
 ## Technology for Modularity 
 
@@ -11,10 +21,12 @@ During the initial phase of dvelopement two alternatives for implemention modula
 
 ## Attempts to Improve Performance
 
-Improving performance is split in three different levels in the project. The level of metamodels, the level of all analyzer and the level of the individual antipattern or metric.
-1. On the largest scale, one of the most obvious solutions is to evaluate multiple metamodels in paralell. This solution is already very effective. In test runs is reduced the time for evaluating ~85'000 metamodels from 108sec to 29sec which is a factor of 3.7.
-2. The second level is the level of the different analyzers. Here it would be possible to parallelize as well, but since on the first level already ~85'000 tasks are created, another subdivision in subtasks wont give any benefit. In addition, the evaluation of a metamodel takes only very little time and espacially for small metamodels the parallelisation of the the evaluation would create more overhead than use. The only remaining thing to consider would be the caching of often used metamodel information such as the list of all EClassifiers inside the metamodel which is needed for many antipattern and metrics.
-3. The thrid level is the level of a single antipattern pr metric. Here, one can find almost non potential for optimization. Efficient programming like reusing already tested and improved code from thrid-party libraries or the built-in Java libraries is the best way to have efficient code. Apart from that, any other optimizations should be looked at with caution since here the impact of writing bad code might become bigger than the actual benefit of improved performance.
+Improving performance is split in three different levels in the project. The level of metamodels, the level of all analyzer and the level of the individual antipattern or metric, although the on second level two approaches can be discussed.
+1. On the largest scale, one of the most obvious solutions is to evaluate multiple metamodels in paralell. Parallelizing on this level has the advantage that no synchronization or copying of ressources is needed since every metamodel is saved in its own file. This solution is already very effective. In test runs is reduced the time for evaluating ~85'000 metamodels from 6min25sec to 1min44sec which is a factor of 3.7.
+2.
+    * The second level is the level of the different analyzers. Here it would be possible to parallelize as well, but since on the first level already ~85'000 tasks are created, another subdivision in subtasks wont give any benefit. In addition, the evaluation of a metamodel takes only very little time and espacially for small metamodels the parallelisation of the the evaluation would create more overhead than use. Also a parallelization on the level of different antipattern and metrics would need synchronized or copied ressources which makes it less performant.
+    * Another possibility is to use caching of metamodel information. Many antipattern and metrics use the same partsinformation of the metamodel e.g. the list of all `EClass`. Since antipattern and metrics are all realized on their own this information needs to be calculated several times which is really time consuming. Caching can reduce this by saving the list of `EClass` per metamodel upon the first computation and reusing it multiple times. It then will be deleted after the analysis of the metamodel is completed. This enhancement reduces the time for the evaluation of ~85'000 metamodels from 1min44sec to 1min2sec which is a factor of 1.7.
+5. The fourth level is the code level. Here, already optimised libraries (EMF) are used. Efficient programming like reusing already tested and improved code from thrid-party libraries or the built-in Java libraries is the best way to have efficient code. Apart from this and some genereral performance code style guidlines like using `Stream` and saving interim results to not recalculate them, any other optimizations should be looked at with caution since here the impact of writing bad code might become bigger than the actual benefit of improved performance.
 
 ## Architecture in General
 
@@ -30,6 +42,35 @@ The following uML class diagram gives an overview over the architectural structu
 
 As indicated, the `MainAnalyzer` uses the `AnalyzerInterfaceLoader` to find all implementations of the interfaces `Antipattern` and `Metric`. These are then applied to the metamodels loaded by the `MetamodelLoader`. The antipattern and metrics can use some helper methods (`MetamodelHelper`) to deal with the metamodels, retrieve the needed information and write the results into an `AnalysisResult`-object which is provided from the `MainAnalyzer`. The package `concurrentExecution` contains the needed class to parallelize the analysis and to evaluate how big the performance boost is.
 
-## Example Execution
+## Setup... 
+### ...for Reproduction
 
-The code should be ready to run with the latest JDK and JRE. Just clone this repository and execute the `build.bat`. Then you can execute the `run.bat` but quite likely you need to change the `-inputDirectory` and `-outputDirectory` parameters. If you do not have an ecore-metamodel at hand you can use the example from [here](https://github.com/NeumannDirk/MetamodelAntipatternSPI/tree/main/analyzerImpl/src/test/resources). For your interest: `-h` prints a header in the output csv, `-s` enforces sequential analysis of the given metamodels but it can just be omitted to use multi-threading.
+1. Clone this repository 
+2. Install maven
+3. Install the analyzerApi by calling `mvn clean install` inside the directory
+4. Package the other three projects by calling `mvn package` inside the other three directories
+5. Inside the main directory execute the analysis or the benchmarks as shown in [Synopsis](#synopsis)
+6. Use the options as needed from the [CMD-Options table](#cmd-options)
+
+### ...for own Antipattern and Metrics
+You do not need to package the analyzerImpl and analyzerImplAdvanced projects but your own maven project. You can use one of them as template. Then in step 4, package your own project and add it to the classpath in step 5.
+
+## CMD-Options...
+### ...for main analysis
+|         Parameter        |                                 Description                                | Notes on Input   | Default Value |
+|:------------------------:|:--------------------------------------------------------------------------:|------------------|--------------:|
+| -csv_seperator, -csv_sep | Separator for the csv output                                               | String           | ","           |
+| --help, --h              | Display help and exit                                                      |                  |               |
+| -log_level, -log         | Set logger level: trace(0), debug(1), info(2), warn(3), error(4), fatal(5) | 0-5              | 3             |
+| -header                  | Print header into result csv                                               |                  |               |
+| -sequential,-seq         | Execute sequentially                                                       |                  |               |
+| selection, -sel          | Selection and order of antipattern and metrics to analyze given by ID      | separated by "," |               |
+| -inputDirectory, -in     | Directory from which all metamodels should be analysed                     | directory path   |               |
+| -outputDirectory, -out   | Directory in which the result csv file schould be saved                    | directory path   |               |
+| --v, --version           | Print version information and exit                                         |                  |               |
+### ...for the benchmarks
+|         Parameter        |                                 Description                                | Notes on Input   | Default Value |
+|:------------------------:|:--------------------------------------------------------------------------:|------------------|--------------:|
+| --help, --h              | Display help and exit                                                      |                  |               |
+| -repetitions, -rep       | Number of repetitions of each execution version for comparisson            | int              | 10            |
+| -inputDirectory, -in     | Directory from which all metamodels should be analysed                     | directory path   |               |
