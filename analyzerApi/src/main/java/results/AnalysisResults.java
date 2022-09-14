@@ -61,13 +61,13 @@ public class AnalysisResults {
 		return stringBuilder.toString();
 	}
 	
-	private int metamodelIndex;
+	public final int metamodelIndex;
 
 	public AnalysisResults(int metamodelIndex) {
 		this.metamodelIndex = metamodelIndex;
 	}
 
-	Map<String, Double> antipattern = new HashMap<String, Double>();
+	Map<String, Long> antipattern = new HashMap<String, Long>();
 	Map<String, Double> metrics = new HashMap<String, Double>();
 	
 	public String getContentCSV() {
@@ -92,8 +92,10 @@ public class AnalysisResults {
 
 		return stringBuilder.toString();
 	}
-
-	private String getAllContentCSV() {
+	
+	private String contentString = null;
+	
+	public void prepareContentString() {
 		StringBuilder stringBuilder = new StringBuilder().append(this.metamodelIndex);
 		for (String metricShortcut : metricMap.keySet()) {
 			stringBuilder.append(AnalysisResults.separator).append(this.metrics.get(metricShortcut));
@@ -102,8 +104,14 @@ public class AnalysisResults {
 			stringBuilder.append(AnalysisResults.separator).append(this.antipattern.get(antipatternShortcut));
 		}
 		stringBuilder.append(System.lineSeparator());
+		this.contentString = stringBuilder.toString();
+	}
 
-		return stringBuilder.toString();
+	private String getAllContentCSV() {
+		if(contentString == null) {
+			this.prepareContentString();
+		}
+		return this.contentString;
 	}
 
 
@@ -111,7 +119,7 @@ public class AnalysisResults {
 		metrics.put(id, value);
 	}
 
-	public void addAntipattern(String id, double value) {
+	public void addAntipattern(String id, long value) {
 		antipattern.put(id, value);
 	}
 }

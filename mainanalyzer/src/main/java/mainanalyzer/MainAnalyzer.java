@@ -3,13 +3,17 @@ package mainanalyzer;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -35,12 +39,12 @@ import results.AnalysisResults;
 		usageHelpAutoWidth = true,
 		name = "MainAnalyzer",
 		description = "%n" + "Project to improve the evaluation of ecore metamodel with respect to antipattern and metrics." + "%n",
-		version="MetamodelAntipatternSPI bv1.0",
+		version="MetamodelAntipatternSPI v1.0",
 		header = "%n" + "MetamodelAntipatternSPI%nPraktikum Ingenieursmäßige Software Entwicklung - SS 2022 - KIT" + "%n",
 		footer = "%n" + "AUTHOR" + "%n" + "Dirk Neumann (https://github.com/NeumannDirk), uehpw(at)student.kit.edu"
 				+ "%n%n" + "REPORTING BUGS" + "%n" + "Issue on https://github.com/NeumannDirk/MetamodelAntipatternSPI"
 				+ "%n%n" + "COPYRIGHT" + "%n" + "Copyright (c) 2022 Creative Commons 4.0 BY-SA-NC"
-				+ "%n%n" + "LAST UPDATE" + "%n" + "07.09.2022",
+				+ "%n%n" + "LAST UPDATE" + "%n" + "14.09.2022 - MetamodelAntipatternSPI v1.0",
 		synopsisHeading = "SYNOPSIS" + "%n",
 		requiredOptionMarker = '*')
 /**
@@ -64,7 +68,7 @@ public class MainAnalyzer {
 	@Option(names = "-header", description = "Print header into result csv", defaultValue = "false")
 	boolean header;
 
-	@Option(names = {"-sequential","-seq"}, description = "Execute sequential")
+	@Option(names = {"-sequential","-seq"}, description = "Execute sequentially")
 	boolean sequential;
 
 	@Option(names = {"-selection", "-sel"}, arity = "0..*", split = ",", description = "Selection and order of antipattern and metrics to analyze given by ID", paramLabel = "STR")
@@ -122,27 +126,45 @@ public class MainAnalyzer {
 			runParallel(ecoreFiles, resultMap);
 		}
 		logger.trace("Analysis completed. Printing results...");
-
+		
 		AnalysisResults.setShortcutSelection(selection);
 		printResultsCSV(header, resultMap);
 		logger.trace("Results stored. Done.");
 	}
 
+	public void runChached(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
+		MetamodelHelper.useCaching = true;
+		runParallel(ecoreFiles, resultMap);		
+	}
+
 	public void runParallel(List<String> ecoreFiles, Map<Integer, AnalysisResults> resultMap) {
-
 		AtomicInteger lock = new AtomicInteger(0);
-
-		ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		logger.trace(String.format("Available Processors: %d", Runtime.getRuntime().availableProcessors()));
+		
+		int numberOfThreads = Runtime.getRuntime().availableProcessors();
+		ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
+		logger.trace(String.format("Available Processors: %d", numberOfThreads));
+		
+		List<Callable<AnalysisResults>> tasks = new ArrayList<Callable<AnalysisResults>>(ecoreFiles.size());
 		for (int ecoreFileNumber = 0; ecoreFileNumber < ecoreFiles.size(); ecoreFileNumber++) {
-			executorService.execute(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber),
-					resultMap, selection, lock, ecoreFiles.size()));
+			tasks.add(new MetamodelAnalysisThread(ecoreFileNumber, ecoreFiles.get(ecoreFileNumber), selection, lock, ecoreFiles.size()));
 		}
-		executorService.shutdown();
+		
+		List<Future<AnalysisResults>> futures = null;
+		
 		try {
-			executorService.awaitTermination(2, TimeUnit.MINUTES);
-		} catch (Exception e) {
-			logger.error(String.format("Error occurrec during parallel analysis: %s", e.getMessage()));
+			futures = executorService.invokeAll(tasks);
+			System.out.print("\rProgress 100% [" + "=".repeat(49) + ">] " + ecoreFiles.size() + "/" + ecoreFiles.size());
+			executorService.shutdown();
+		} catch (InterruptedException executionException) {
+			logger.error(String.format("Error occurred during parallel analysis: %s", executionException.getMessage()));
+		}
+		
+		for(Future<AnalysisResults> future : futures) {
+			try {
+				resultMap.put(future.get().metamodelIndex, future.get());
+			} catch (InterruptedException | ExecutionException analysisException) {
+				logger.error(String.format("Error occurred during result analysis: %s", analysisException.getMessage()));
+			}
 		}
 	}
 

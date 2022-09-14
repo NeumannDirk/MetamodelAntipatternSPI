@@ -3,6 +3,7 @@ package concurrentExecution;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -14,29 +15,25 @@ import analyzerInterfaces.Metric;
 import metamodelUtil.MetamodelHelper;
 import results.AnalysisResults;
 
-public class MetamodelAnalysisThread implements Runnable {
+public class MetamodelAnalysisThread implements Callable<AnalysisResults> {
 
 	private int ecoreFileNumber;
 	private String ecoreFile;
-	private Map<Integer, AnalysisResults> resultMap;
 	List<String> shortcutSelection;
 	private AtomicInteger lock;
 	private int max;
 
-	public MetamodelAnalysisThread(int ecoreFileNumber, String ecoreFile, Map<Integer, AnalysisResults> resultMap,
-			List<String> shortcutSelection, AtomicInteger lock, int max) {
+	public MetamodelAnalysisThread(int ecoreFileNumber, String ecoreFile, List<String> shortcutSelection, AtomicInteger lock, int max) {
 		this.ecoreFileNumber = ecoreFileNumber;
 		this.ecoreFile = ecoreFile;
-		this.resultMap = resultMap;
 		this.shortcutSelection = shortcutSelection;
 		this.lock = lock;
 		this.max = max;
 	}
 
 	@Override
-	public void run() { 
+	public AnalysisResults call() throws Exception { 
 		AnalysisResults analysisResult = new AnalysisResults(ecoreFileNumber);
-		resultMap.put(ecoreFileNumber, analysisResult);
 
 		Optional<Resource> optionalMetamodel = MetamodelHelper.loadEcoreMetamodelFromFile(ecoreFile);
 		optionalMetamodel.ifPresent(metamodel -> {			
@@ -55,8 +52,11 @@ public class MetamodelAnalysisThread implements Runnable {
 				double evaluationResult = metric.evaluate(metamodel);
 				analysisResult.addMetric(metric.getShortcut(), evaluationResult);
 			}
+			MetamodelHelper.dropCache(metamodel);
 		});
+		analysisResult.prepareContentString();
 		printProgressBar();
+		return analysisResult;
 	}
 
 	private void printProgressBar() {
