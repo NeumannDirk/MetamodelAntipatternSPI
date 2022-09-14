@@ -26,6 +26,11 @@ public abstract class AbstractAntipattern implements Antipattern {
 	private final String shortcut;
 	private final String description;
 	
+	/** 
+	 * @param name 
+	 * @param shortcut Should not contain any separator chars to ensure correct interpretation in the results csv.
+	 * @param description
+	 */
 	public AbstractAntipattern(String name, String shortcut, String description) {
 		this.name = name;
 		this.shortcut = shortcut;

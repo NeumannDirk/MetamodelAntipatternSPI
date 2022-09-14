@@ -95,6 +95,9 @@ public class AnalysisResults {
 	
 	private String contentString = null;
 	
+	/**
+	 * Prepares the content String beforehand to improve the printing of results. 
+	 */
 	public void prepareContentString() {
 		StringBuilder stringBuilder = new StringBuilder().append(this.metamodelIndex);
 		for (String metricShortcut : metricMap.keySet()) {

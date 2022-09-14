@@ -26,6 +26,11 @@ public abstract class AbstractMetric implements Metric {
 	private final String shortcut;
 	private final String description;
 	
+	/** 
+	 * @param name 
+	 * @param shortcut Should not contain any separator chars to ensure correct interpretation in the results csv.
+	 * @param description
+	 */
 	public AbstractMetric(String name, String shortcut, String description) {
 		this.name = name;
 		this.shortcut = shortcut;

@@ -71,6 +71,8 @@ public class MetamodelHelper {
 			try {
 				cache.get(myMetaModel).put((Class<Object>)clazz,(List<Object>)returnList);				
 			}catch (Exception e) {
+				//It might occur that cache.containsKey(key) evaluates to true but when accessing the element with .get(key)
+				//an exception is thrown. Therefore this exception will be catched and the key will be added.
 				Map<Class<Object>, List<Object>> newMap = new HashMap<Class<Object>, List<Object>>();
 				newMap.put((Class<Object>)clazz,(List<Object>)returnList);
 				cache.put(myMetaModel, newMap);
@@ -79,6 +81,11 @@ public class MetamodelHelper {
 		return Collections.unmodifiableList(returnList);
 	}
 		
+	/**
+	 * Checks if the metamodel contains which contains themself directly or indirectly with distance 2 
+	 * @param myMetaModel
+	 * @return true if an element exists which contains itself, false else
+	 */
 	private static boolean containsRecursiveElement(Resource myMetaModel) {
 		TreeIterator<EObject> iter1 = myMetaModel.getAllContents();
 		Stream<EObject> targetStream1 = StreamSupport.stream(Spliterators.spliteratorUnknownSize(iter1, Spliterator.ORDERED), false);
@@ -91,7 +98,6 @@ public class MetamodelHelper {
 			return true;
 		}
 		return false;
-		
 	}
 
 	public static void dropCache(Resource myMetaModel) {

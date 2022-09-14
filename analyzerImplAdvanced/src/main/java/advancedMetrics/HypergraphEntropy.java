@@ -17,7 +17,7 @@ public class HypergraphEntropy extends AbstractMetric {
 	}
 
 	@Override
-	public Double evaluate(Resource resource) {		
+	public Double evaluate(Resource resource) {
 		return EcoreToHypergraphConverter.createHypergraph(resource).calculateEntropy();
 	}
 
