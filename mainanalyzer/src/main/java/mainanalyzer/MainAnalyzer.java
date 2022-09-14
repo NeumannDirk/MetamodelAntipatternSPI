@@ -74,6 +74,9 @@ public class MainAnalyzer {
 	@Option(names = {"-selection", "-sel"}, arity = "0..*", split = ",", description = "Selection and order of antipattern and metrics to analyze given by ID", paramLabel = "STR")
 	List<String> selection = null;
 
+	@Option(names = {"-csv_separator", "-csv_sep"}, description = "Separator for the csv output", paramLabel = "STR", defaultValue = ",")
+	private String csvSeparator = ",";
+	
 	@Option(names = {"-inputDirectory", "-in"}, required = true, description = "Directory from which all metamodels should be analysed", paramLabel = "DIR")
 	private String inputDirectory = null;
 
@@ -114,6 +117,7 @@ public class MainAnalyzer {
 		if (!checkCommandLineParameters()) {
 			return;
 		}
+		AnalysisResults.setSeparator(this.csvSeparator);
 
 		List<String> ecoreFiles = MetamodelLoader.findAllEcoreMetamodelsInDirectory(this.inputDirectory);
 		logger.trace(String.format("Found %d potential ecore metamodels to analyze.", ecoreFiles.size()));
