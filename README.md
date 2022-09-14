@@ -57,20 +57,20 @@ You do not need to package the analyzerImpl and analyzerImplAdvanced projects bu
 
 ## CMD-Options...
 ### ...for main analysis
-|         Parameter        |                                 Description                                | Notes on Input   | Default Value |
-|:------------------------:|:--------------------------------------------------------------------------:|------------------|--------------:|
-| -csv_seperator, -csv_sep | Separator for the csv output                                               | String           | ","           |
-| --help, --h              | Display help and exit                                                      |                  |               |
-| -log_level, -log         | Set logger level: trace(0), debug(1), info(2), warn(3), error(4), fatal(5) | 0-5              | 3             |
-| -header                  | Print header into result csv                                               |                  |               |
-| -sequential,-seq         | Execute sequentially                                                       |                  |               |
-| selection, -sel          | Selection and order of antipattern and metrics to analyze given by ID      | separated by "," |               |
-| -inputDirectory, -in     | Directory from which all metamodels should be analysed                     | directory path   |               |
-| -outputDirectory, -out   | Directory in which the result csv file schould be saved                    | directory path   |               |
-| --v, --version           | Print version information and exit                                         |                  |               |
+|         Parameter           |                                 Description                                | Notes on Input   | Default Value |
+|:---------------------------:|:--------------------------------------------------------------------------:|------------------|--------------:|
+| -csv_seperator,<br>-csv_sep | Separator for the csv output                                               | String           | ","           |
+| --help,<br>--h              | Display help and exit                                                      |                  |               |
+| -log_level,<br>-log         | Set logger level: trace(0), debug(1), info(2), warn(3), error(4), fatal(5) | 0-5              | 3             |
+| -header                     | Print header into result csv                                               |                  |               |
+| -sequential,<br>-seq        | Execute sequentially                                                       |                  |               |
+| selection,<br>-sel          | Selection and order of antipattern and metrics to analyze given by ID      | separated by "," |               |
+| -inputDirectory,<br>-in     | Directory from which all metamodels should be analysed                     | directory path   |               |
+| -outputDirectory,<br>-out   | Directory in which the result csv file schould be saved                    | directory path   |               |
+| --v,<br>--version           | Print version information and exit                                         |                  |               |
 ### ...for the benchmarks
-|         Parameter        |                                 Description                                | Notes on Input   | Default Value |
-|:------------------------:|:--------------------------------------------------------------------------:|------------------|--------------:|
-| --help, --h              | Display help and exit                                                      |                  |               |
-| -repetitions, -rep       | Number of repetitions of each execution version for comparisson            | int              | 10            |
-| -inputDirectory, -in     | Directory from which all metamodels should be analysed                     | directory path   |               |
+|         Parameter           |                                 Description                                | Notes on Input   | Default Value |
+|:---------------------------:|:--------------------------------------------------------------------------:|------------------|--------------:|
+| --help,<br>--h              | Display help and exit                                                      |                  |               |
+| -repetitions,<br>-rep       | Number of repetitions of each execution version for comparisson            | int              | 10            |
+| -inputDirectory,<br>-in     | Directory from which all metamodels should be analysed                     | directory path   |               |
