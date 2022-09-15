@@ -77,7 +77,7 @@ public class MainAnalyzer {
 	@Option(names = "-no_caching", description = "Deactivates caching during the metamodel analysis to improve performance")
 	boolean noCaching;
 	
-	@Option(names = {"-no_progresss_bar", "-no_progress"}, description = "Deactivates printing the progress bar during execution.")
+	@Option(names = {"-no_progresss_bar", "-no_progress"}, description = "Deactivates printing the progress bar during execution")
 	boolean noProgressBar;
 
 	@Option(names = {"-csv_separator", "-csv_sep"}, description = "Separator for the csv output", paramLabel = "STR", defaultValue = ",")

@@ -48,7 +48,7 @@ public class ConcurrencyComparator {
 	@Option(names = {"-repetitions", "-rep"}, description = "Number of repetitions of each execution version for comparisson", defaultValue = "10")
 	private int repetitions = 10;
 	
-	@Option(names = {"-progresss_bar", "-progress"}, description = "Activates printing the progress bar during execution.")
+	@Option(names = {"-no_progresss_bar", "-no_progress"}, description = "Deactivates printing the progress bar during execution")
 	boolean printProgressBar;
 
 	public static void main(String[] args) {
