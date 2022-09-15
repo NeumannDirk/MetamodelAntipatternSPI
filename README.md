@@ -14,28 +14,28 @@ java -cp [classpath elements] concurrentExecution.CachingComparator -inputDirect
 
 ## Technology for Modularity 
 
-During the initial phase of dvelopement two alternatives for implemention modularity were considered: Using the Java Service Provider Interface (Java SPI) and unsing an OSGI based solution. The decision was made to use Java SPI because of multiple reasons.
+During the initial phase of development two alternatives for implementation modularity were considered: Using the Java Service Provider Interface (Java SPI) and using an OSGI based solution. The decision was made to use Java SPI because of multiple reasons.
 1. First, Java SPI is more lightweight and therefore easier to use and to start with.
-2. Second, many advantages of OSGI such as dynamic loading, installing, updating and stopping of services ist not needed. The goal is "just" to analyse a given set of metamodels with the antipattern and metrics provided at the start up time of the programm. Adding or removing antipattern/ metrics during execution would lead to incomplete datasets in the final result and wont provide any advantage.
-3. Lastly, the runtime environment for OSGI is harder to set up since the complete OSGI framework needs to be provided and shiped. Java SPI on the other hand uses the intern reflection libraries and has therefore less dependencies.
+2. Second, many advantages of OSGI such as dynamic loading, installing, updating and stopping of services ist not needed. The goal is "just" to analyze a given set of metamodels with the antipattern and metrics provided at the start-up time of the program. Adding or removing antipattern/ metrics during execution would lead to incomplete datasets in the final result and will not provide any advantage.
+3. Lastly, the runtime environment for OSGI is harder to set up, since the complete OSGI framework needs to be provided and shiped. Java SPI on the other hand uses the intern reflection libraries and has therefore fewer dependencies.
 
 ## Attempts to Improve Performance
 
-Improving performance is split in three different levels in the project. The level of metamodels, the level of all analyzer and the level of the individual antipattern or metric, although the on second level two approaches can be discussed.
-1. On the largest scale, one of the most obvious solutions is to evaluate multiple metamodels in paralell. Parallelizing on this level has the advantage that no synchronization or copying of ressources is needed since every metamodel is saved in its own file. This solution is already very effective. In test runs is reduced the time for evaluating ~85'000 metamodels from 6min25sec to 1min44sec which is a factor of 3.7.
+Improving performance is split in three different levels in the project. The level of metamodels, the level of all analyzers and the level of the individual antipattern or metric, although the on second level two approaches can be discussed.
+1. On the largest scale, one of the most obvious solutions is to evaluate multiple metamodels in parallel. Parallelizing on this level has the advantage that no synchronization or copying of resources is needed, since every metamodel is saved in its own file. This solution is already very effective. In test runs, it reduced the time for evaluating ~85'000 metamodels from 6min25sec to 1min44sec, which is a factor of 3.7.
 2.
-    * The second level is the level of the different analyzers. Here it would be possible to parallelize as well, but since on the first level already ~85'000 tasks are created, another subdivision in subtasks wont give any benefit. In addition, the evaluation of a metamodel takes only very little time and espacially for small metamodels the parallelisation of the the evaluation would create more overhead than use. Also a parallelization on the level of different antipattern and metrics would need synchronized or copied ressources which makes it less performant.
-    * Another possibility is to use caching of metamodel information. Many antipattern and metrics use the same partsinformation of the metamodel e.g. the list of all `EClass`. Since antipattern and metrics are all realized on their own this information needs to be calculated several times which is really time consuming. Caching can reduce this by saving the list of `EClass` per metamodel upon the first computation and reusing it multiple times. It then will be deleted after the analysis of the metamodel is completed. This enhancement reduces the time for the evaluation of ~85'000 metamodels from 1min44sec to 1min2sec which is a factor of 1.7.
-5. The fourth level is the code level. Here, already optimised libraries (EMF) are used. Efficient programming like reusing already tested and improved code from thrid-party libraries or the built-in Java libraries is the best way to have efficient code. Apart from this and some genereral performance code style guidlines like using `Stream` and saving interim results to not recalculate them, any other optimizations should be looked at with caution since here the impact of writing bad code might become bigger than the actual benefit of improved performance.
+    * The second level is the level of the different analyzers. Here it would be possible to parallelize as well, but since on the first level already ~85'000 tasks are created, another subdivision in subtasks will not give any benefit. In addition, the evaluation of a metamodel takes only very little time and especially for small metamodels the parallelization of the evaluation would create more overhead than use. Also, a parallelization on the level of different antipattern and metrics would need synchronized or copied resources, which makes it less performant.
+    * Another possibility is to use caching of metamodel information. Many antipattern and metrics use the same parts of the metamodel, e.g. the list of all `EClass`. Since antipattern and metrics are all realized on their own, this information needs to be calculated several times, which is really time-consuming. Caching can reduce this by saving the list of `EClass` per metamodel upon the first computation and reusing it multiple times. It then will be deleted after the analysis of the metamodel is completed. This enhancement reduces the time for the evaluation of ~85'000 metamodels from 1min44sec to 1min2sec, which is a factor of 1.7.
+3. The fourth level is the code level. Here, already optimized libraries (EMF) are used. Efficient programming like reusing already tested and improved code from third-party libraries or the built-in Java libraries is the best way to have efficient code. Apart from this and some general performance code style guidelines like using `Stream` and saving interim results to not recalculate them, any other optimizations should be looked at with caution since here the impact of writing bad code might become bigger than the actual benefit of improved performance.
 
 ## Architecture in General
 
 This repository consists of 4 maven projects.
-* The analyzerApi-project defines all Interfaces and all reusable helpers in connection with those.
-* The analyzerImpl- and analyzerImplAdvanced-project implement these interfaces and provide the actual antipattern and metrics for the analysis. These antipattern and metrics are provided via the files inside src/main/resoures/META-INF/services to let the environment know which class implements which interface. These projects are also meant to define their own unit tests for each of the antipattern/ metrics.
+* The analyzerApi-project defines all interfaces and all reusable helpers in connection with those.
+* The analyzerImpl- and analyzerImplAdvanced-project implement these interfaces and provide the actual antipattern and metrics for the analysis. These antipattern and metrics are provided via the files inside src/main/resources/META-INF/services to let the environment know which class implements which interface. These projects are also meant to define their own unit tests for each of the antipattern/ metrics.
 * The mainanalyzer-project contains the executables for the analysis of the whole metamodel dataset and currently the performance comparator for the improvements concerning the runtime
 
-The following uML class diagram gives an overview over the architectural structure of the repository. The analyzerImplAdvanced-project is left out since it has the same purpose as the analyzerImpl-project. 
+The following UML class diagram gives an overview over the architectural structure of the repository. The analyzerImplAdvanced-project is left out since it has the same purpose as the analyzerImpl-project. 
 <p align="center">
 <img src="https://github.com/NeumannDirk/MetamodelAntipatternSPI/blob/main/pictures/uml.svg" width="700" height="700"/>
 </p>
@@ -53,7 +53,7 @@ As indicated, the `MainAnalyzer` uses the `AnalyzerInterfaceLoader` to find all 
 6. Use the options as needed from the [CMD-Options table](#cmd-options)
 
 ### ...for own Antipattern and Metrics
-You do not need to package the analyzerImpl and analyzerImplAdvanced projects but your own maven project. You can use one of them as template. Then in step 4, package your own project and add it to the classpath in step 5.
+You do not need to package the analyzerImpl and analyzerImplAdvanced projects, but your own maven project. You can use one of them as template. Then in step 4, package your own project and add it to the classpath in step 5.
 
 ## CMD-Options...
 ### ...for main analysis
